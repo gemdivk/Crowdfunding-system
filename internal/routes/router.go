@@ -16,7 +16,10 @@ func SetupRouter() *gin.Engine {
 		campaignRoutes.GET("/:id", handlers.GetCampaignId)
 		campaignRoutes.PUT("/:id", handlers.UpdateCampaignHandler)
 		campaignRoutes.DELETE("/:id", handlers.DeleteCampaignHandler)
+
 	}
+	router.POST("/register", handlers.RegisterUser)
+	router.POST("/login", handlers.LoginUser)
 
 	// Donation routes
 	/*	donationRoutes := router.Group("/donations")
