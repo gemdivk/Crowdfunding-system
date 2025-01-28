@@ -38,5 +38,15 @@ func SetupRouter() *gin.Engine {
 		protectedRoutes.PUT("/donations/:id", handlers.UpdateDonation)
 		protectedRoutes.DELETE("/donations/:id", handlers.DeleteDonation)
 	}
+
+	router.GET("/user-points", handlers.GetAllUserPoints)
+	router.POST("/user-points", handlers.AddUserPoints)
+	router.PUT("/user-points/:user_id", handlers.UpdateUserPoints)
+	router.DELETE("/user-points/:user_id", handlers.DeleteUserPoints)
+
+	router.GET("/achievements", handlers.GetAllAchievements)
+	router.POST("/achievements", handlers.AddAchievement)
+	router.DELETE("/achievements/:id", handlers.DeleteAchievement)
+
 	return router
 }
