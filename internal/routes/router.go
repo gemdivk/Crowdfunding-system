@@ -23,6 +23,7 @@ func SetupRouter() *gin.Engine {
 	}
 	router.POST("/register", handlers.RegisterUser)
 	router.POST("/login", handlers.LoginUser)
+	router.POST("/logout", handlers.LogoutUser)
 
 	donationRoutes := router.Group("/campaigns/:id/donations")
 	{
