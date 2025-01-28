@@ -6,3 +6,4 @@ CREATE TABLE SocialShares (
                               shared_to VARCHAR(255) NOT NULL, -- e.g., "facebook", "twitter"
                               created_at TIMESTAMP DEFAULT NOW()
 );
+

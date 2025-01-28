@@ -14,6 +14,7 @@ func SetupRouter() *gin.Engine {
 	// Campaign routes
 	campaignRoutes := router.Group("/campaigns")
 	{
+		campaignRoutes.Use(middleware.AuthMiddleware())
 		campaignRoutes.POST("/", handlers.CreateCampaignHandler) // Create a new campaign
 		campaignRoutes.GET("/", handlers.GetCampaignsHandler)    // Get all campaigns
 		campaignRoutes.GET("/:id", handlers.GetCampaignId)
@@ -55,6 +56,13 @@ func SetupRouter() *gin.Engine {
 			"linkedin": linkedinLink,
 		})
 	})
+	router.GET("/user-points", handlers.GetAllUserPoints)
+	router.POST("/user-points", handlers.AddUserPoints)
+	router.PUT("/user-points/:user_id", handlers.UpdateUserPoints)
+	router.DELETE("/user-points/:user_id", handlers.DeleteUserPoints)
 
+	router.GET("/achievements", handlers.GetAllAchievements)
+	router.POST("/achievements", handlers.AddAchievement)
+	router.DELETE("/achievements/:id", handlers.DeleteAchievement)
 	return router
 }
