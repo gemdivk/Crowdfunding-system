@@ -1,7 +1,9 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/gemdivk/Crowdfunding-system/internal/db"
 	"time"
 
@@ -61,4 +63,18 @@ func Authenticate(email, password string) (*User, error) {
 
 	user.Password = ""
 	return &user, nil
+}
+
+func GetUserIDbyEmail(email string) (int, error) {
+	var userID int
+	query := `Select user_id from "User" where email = $1`
+	err := db.DB.QueryRow(query, email).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("No user was found by this email: %s", email)
+		}
+		return 0, err
+	}
+	return userID, nil
+
 }

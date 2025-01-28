@@ -11,7 +11,8 @@ import (
 var jwtKey = []byte("your_secret_key")
 
 type Claims struct {
-	Email string `json:"email"`
+	Email  string `json:"email"`
+	UserID int
 	jwt.RegisteredClaims
 }
 
@@ -49,10 +50,11 @@ func LoginUser(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
 	expirationTime := time.Now().Add(24 * time.Hour)
+	userid, _ := models.GetUserIDbyEmail(user.Email)
 	claims := &Claims{
-		Email: authUser.Email,
+		Email:  authUser.Email,
+		UserID: userid,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

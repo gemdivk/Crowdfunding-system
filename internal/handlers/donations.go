@@ -1,23 +1,27 @@
-// handlers/donations.go
 package handlers
 
 import (
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
-// CreateDonation allows users to donate to a campaign
 func CreateDonation(c *gin.Context) {
-	campaignID := c.Param("id") // Get the campaign ID from URL parameters
+	campaignIDStr := c.Param("id")
+	campaignID, err := strconv.Atoi(campaignIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
+		return
+	}
+
 	var donation models.Donation
 	if err := c.ShouldBindJSON(&donation); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
-	donation.CampaignID = campaignID // Set the campaign ID
+	donation.CampaignID = campaignID
 
-	// Call CreateDonation function to insert it into the database
 	if err := models.CreateDonation(&donation); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process donation"})
 		return
@@ -31,9 +35,13 @@ func CreateDonation(c *gin.Context) {
 	})
 }
 
-// GetDonationsByCampaign retrieves all donations for a specific campaign
 func GetDonationsByCampaign(c *gin.Context) {
-	campaignID := c.Param("id")
+	campaignIDStr := c.Param("id")
+	campaignID, err := strconv.Atoi(campaignIDStr) // Convert string to int
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
+		return
+	}
 	donations, err := models.GetDonationsForCampaign(campaignID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations for campaign"})
@@ -43,9 +51,13 @@ func GetDonationsByCampaign(c *gin.Context) {
 	c.JSON(http.StatusOK, donations)
 }
 
-// GetDonationsByUser retrieves all donations made by a specific user
 func GetDonationsByUser(c *gin.Context) {
-	userID := c.Param("user_id")
+	userIDStr := c.Param("user_id")
+	userID, err := strconv.Atoi(userIDStr) // Convert string to int
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 	donations, err := models.GetDonationsByUser(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch donations for user"})
@@ -55,9 +67,29 @@ func GetDonationsByUser(c *gin.Context) {
 	c.JSON(http.StatusOK, donations)
 }
 
-// UpdateDonation allows updating donation details
 func UpdateDonation(c *gin.Context) {
-	donationID := c.Param("id")
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated "})
+		return
+	}
+
+	donationIDStr := c.Param("id")
+	donationID, err := strconv.Atoi(donationIDStr) // Convert string to int
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donation ID"})
+		return
+	}
+
+	donorid, err1 := models.GetUserByDonationID(donationID)
+	if err1 == nil {
+		if donorid != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have a permission to update it. Sorry xD"})
+			return
+		}
+	}
+
 	var updatedDonation models.Donation
 	if err := c.ShouldBindJSON(&updatedDonation); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -72,12 +104,34 @@ func UpdateDonation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "Donation updated successfully",
 		"donation_id": donationID,
+		"donor_id":    donorid,
+		"user_id":     userID,
 	})
 }
 
-// DeleteDonation allows users or admins to delete a donation
 func DeleteDonation(c *gin.Context) {
-	donationID := c.Param("id")
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		return
+	}
+	donationIDStr := c.Param("id")
+	donationID, err := strconv.Atoi(donationIDStr) // Convert string to int
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid donation ID"})
+		return
+	}
+
+	var donorID int
+	donorID, err = models.GetUserByDonationID(donationID)
+	if err == nil {
+		if donorID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to delete it"})
+			return
+		}
+	}
+
 	if err := models.DeleteDonation(donationID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete donation"})
 		return
@@ -86,5 +140,7 @@ func DeleteDonation(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":     "Donation deleted successfully",
 		"donation_id": donationID,
+		"user_id":     userID,
+		"donor_id":    donorID,
 	})
 }
