@@ -22,11 +22,14 @@ func SetupRouter() *gin.Engine {
 	router.POST("/login", handlers.LoginUser)
 
 	// Donation routes
-	/*	donationRoutes := router.Group("/donations")
-		{
-			donationRoutes.POST("/:campaign_id", handlers.DonateToCampaignHandler) // Donate to a campaign
-			donationRoutes.GET("/:campaign_id", handlers.GetDonationsHandler)      // Get all donations for a campaign
-		}
-	*/
+	donationRoutes := router.Group("/campaigns/:id/donations")
+	{
+		donationRoutes.POST("/", handlers.CreateDonation)        // Donate to a campaign
+		donationRoutes.GET("/", handlers.GetDonationsByCampaign) // Get all donations for a campaign
+	}
+
+	router.GET("/donations/user/:user_id", handlers.GetDonationsByUser)
+	router.PUT("/donations/:id", handlers.UpdateDonation)
+	router.DELETE("/donations/:id", handlers.DeleteDonation)
 	return router
 }

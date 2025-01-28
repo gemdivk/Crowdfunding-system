@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"net/http"
+	"time"
 )
 
 var jwtKey = []byte("your_secret_key")
