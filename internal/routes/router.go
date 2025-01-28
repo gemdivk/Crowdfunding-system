@@ -3,7 +3,9 @@ package routes
 import (
 	"github.com/gemdivk/Crowdfunding-system/internal/handlers"
 	"github.com/gemdivk/Crowdfunding-system/internal/middleware"
+	"github.com/gemdivk/Crowdfunding-system/internal/social"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func SetupRouter() *gin.Engine {
@@ -37,5 +39,21 @@ func SetupRouter() *gin.Engine {
 		protectedRoutes.PUT("/donations/:id", handlers.UpdateDonation)
 		protectedRoutes.DELETE("/donations/:id", handlers.DeleteDonation)
 	}
+
+	router.GET("/share", func(c *gin.Context) {
+		targetURL := c.DefaultQuery("url", "https://yourcrowdfundingurl.com")
+		text := c.DefaultQuery("text", "Check out this campaign!")
+
+		facebookLink := social.GetFacebookShareLink(targetURL)
+		twitterLink := social.GetTwitterShareLink(targetURL, text)
+		linkedinLink := social.GetLinkedInShareLink(targetURL, "Campaign Title", "A description of the campaign")
+
+		c.JSON(http.StatusOK, gin.H{
+			"facebook": facebookLink,
+			"twitter":  twitterLink,
+			"linkedin": linkedinLink,
+		})
+	})
+
 	return router
 }

@@ -7,6 +7,13 @@ import (
 )
 
 func CreateCampaignHandler(c *gin.Context) {
+
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in first"})
+		return
+	}
+
 	var campaign models.Campaign
 	if err := c.BindJSON(&campaign); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -22,7 +29,6 @@ func CreateCampaignHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, campaign)
 }
 
-// GetCampaignsHandler handles retrieving all campaigns
 func GetCampaignsHandler(c *gin.Context) {
 	campaigns, err := models.GetAllCampaigns()
 	if err != nil {
@@ -48,6 +54,13 @@ func GetCampaignId(c *gin.Context) {
 	c.JSON(http.StatusOK, campaign)
 }
 func UpdateCampaignHandler(c *gin.Context) {
+
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in first"})
+		return
+	}
+
 	var campaign models.Campaign
 	if err := c.BindJSON(&campaign); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -65,6 +78,11 @@ func UpdateCampaignHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, campaign)
 }
 func DeleteCampaignHandler(c *gin.Context) {
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in first"})
+		return
+	}
 	campaignID := c.Param("id")
 
 	err := models.DeleteCampaign(campaignID)

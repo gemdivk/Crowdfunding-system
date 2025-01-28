@@ -10,6 +10,11 @@ import (
 func CreateDonation(c *gin.Context) {
 	campaignIDStr := c.Param("id")
 	campaignID, err := strconv.Atoi(campaignIDStr)
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You have to be authorized. Please, log in"})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
 		return
@@ -20,8 +25,8 @@ func CreateDonation(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
-	donation.CampaignID = campaignID
 
+	donation.CampaignID = campaignID
 	if err := models.CreateDonation(&donation); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process donation"})
 		return
@@ -36,8 +41,10 @@ func CreateDonation(c *gin.Context) {
 }
 
 func GetDonationsByCampaign(c *gin.Context) {
+
 	campaignIDStr := c.Param("id")
 	campaignID, err := strconv.Atoi(campaignIDStr) // Convert string to int
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
 		return

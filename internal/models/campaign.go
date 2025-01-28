@@ -21,6 +21,7 @@ type Campaign struct {
 }
 
 func CreateCampaign(campaign Campaign) error {
+
 	var userExists bool
 	checkUserQuery := `SELECT EXISTS(SELECT 1 FROM "User" WHERE user_id = $1)`
 	err := db.DB.QueryRow(checkUserQuery, campaign.UserID).Scan(&userExists)
