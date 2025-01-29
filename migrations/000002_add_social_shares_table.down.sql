@@ -1,1 +1,1 @@
-DROP TABLE SocialShares;
+DROP TABLE  if exists SocialShares;
