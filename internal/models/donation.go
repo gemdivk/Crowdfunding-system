@@ -8,12 +8,11 @@ import (
 )
 
 type Donation struct {
-	ID         int       `json:"id"`
-	CampaignID int       `json:"campaign_id"` // Changed to int
-	UserID     int       `json:"user_id"`     // Changed to int
-	Amount     float64   `json:"amount"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID           int       `json:"id"`
+	CampaignID   int       `json:"campaign_id"` // Changed to int
+	UserID       int       `json:"user_id"`     // Changed to int
+	Amount       float64   `json:"amount"`
+	DonationDate time.Time `json:"donation_date"`
 }
 
 func CreateDonation(donation *Donation) error {
@@ -40,7 +39,7 @@ func GetDonationsForCampaign(campaignID int) ([]Donation, error) {
 
 	for rows.Next() {
 		var donation Donation
-		if err := rows.Scan(&donation.ID, &donation.UserID, &donation.CampaignID, &donation.Amount, &donation.CreatedAt); err != nil {
+		if err := rows.Scan(&donation.ID, &donation.UserID, &donation.CampaignID, &donation.Amount, &donation.DonationDate); err != nil {
 			return nil, fmt.Errorf("Failed to scan donation: %v", err)
 		}
 		donations = append(donations, donation)
@@ -76,7 +75,7 @@ func GetDonationsByUser(userID int) ([]Donation, error) {
 
 	for rows.Next() {
 		var donation Donation
-		if err := rows.Scan(&donation.ID, &donation.UserID, &donation.CampaignID, &donation.Amount, &donation.CreatedAt); err != nil {
+		if err := rows.Scan(&donation.ID, &donation.UserID, &donation.CampaignID, &donation.Amount, &donation.DonationDate); err != nil {
 			return nil, fmt.Errorf("Failed to scan donation: %v", err)
 		}
 		donations = append(donations, donation)
