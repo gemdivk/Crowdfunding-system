@@ -53,12 +53,16 @@ func SetupRouter() *gin.Engine {
 	}
 
 	router.GET("/share", func(c *gin.Context) {
-		targetURL := c.DefaultQuery("url", "https://yourcrowdfundingurl.com")
+		publicURL := c.DefaultQuery("url", "https://yourcrowdfundingurl.com")
 		text := c.DefaultQuery("text", "Check out this campaign!")
 
-		facebookLink := social.GetFacebookShareLink(targetURL)
-		twitterLink := social.GetTwitterShareLink(targetURL, text)
-		linkedinLink := social.GetLinkedInShareLink(targetURL, "Campaign Title", "A description of the campaign")
+		// For demo, using fixed campaign data; in practice, pass actual campaign info
+		campaignTitle := "Campaign Title"
+		campaignDescription := "This campaign is for raising funds to protect the Amazon rainforest."
+
+		facebookLink := social.GetFacebookShareLink(publicURL, campaignDescription)
+		twitterLink := social.GetTwitterShareLink(publicURL, text)
+		linkedinLink := social.GetLinkedInShareLink(publicURL, campaignTitle, campaignDescription)
 
 		c.JSON(http.StatusOK, gin.H{
 			"facebook": facebookLink,

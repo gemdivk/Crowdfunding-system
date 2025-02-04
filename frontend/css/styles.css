@@ -1,4 +1,78 @@
 /* Your existing body styling */
+
+.campaign-item {
+    background: #fff;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.campaign-item:hover {
+    transform: translateY(-5px);
+}
+
+.campaign-item h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.campaign-item p {
+    color: #666;
+    margin: 5px 0;
+}
+
+button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.social-buttons a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.social-buttons a:hover {
+    transform: scale(1.05);
+}
+
+.share-twitter {
+    background: linear-gradient(135deg, #1da1f2, #0d8ddb);
+}
+
+.share-linkedin {
+    background: linear-gradient(135deg, #0077b5, #005582);
+}
+
+.social-buttons svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -50,6 +124,12 @@ nav ul li a {
     border-radius: 5px;
 }
 .campaigns-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between; /* Align items evenly */
+}
+.campaign-container {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;

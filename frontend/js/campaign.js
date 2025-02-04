@@ -88,3 +88,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
+function checkUserLoginStatus() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        document.getElementById("campaign-menu").style.display = "none";
+        return;
+    }
+
+    const decoded = jwt_decode(token);
+
+    const currentTime = Date.now() / 1000; // Current time in seconds
+    if (decoded.exp < currentTime) {
+        document.getElementById("campaign-menu").style.display = "none";
+    } else {
+        document.getElementById("campaign-menu").style.display = "block";
+    }
+}
+
+window.onload = checkUserLoginStatus;
