@@ -19,12 +19,17 @@ func CreateDonation(donation *Donation) error {
 
 	query := `INSERT INTO "Donation" (user_id, campaign_id, amount, donation_date) 
           VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING donation_id`
-
 	err := db.DB.QueryRow(query, donation.UserID, donation.CampaignID, donation.Amount).
 		Scan(&donation.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to insert donation: %v", err)
 	}
+
+	err = UpdateAmountRaised(donation.CampaignID, donation.Amount)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -105,4 +110,15 @@ func DeleteDonation(id int) error {
 		return fmt.Errorf("Failed to delete donation: %v", err)
 	}
 	return nil
+}
+func UpdateAmountRaised(campaignID int, donationAmount float64) error {
+	var currentAmountRaised float64
+	err := db.DB.QueryRow(`SELECT amount_raised FROM "Campaign" WHERE campaign_id = $1`, campaignID).Scan(&currentAmountRaised)
+	if err != nil {
+		return err
+	}
+	newAmountRaised := currentAmountRaised + donationAmount
+	_, err = db.DB.Exec(`UPDATE "Campaign" SET amount_raised = $1 WHERE campaign_id = $2`,
+		newAmountRaised, campaignID)
+	return err
 }

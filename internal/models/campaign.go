@@ -130,3 +130,23 @@ func SearchCampaigns(query string) ([]Campaign, error) {
 
 	return campaigns, nil
 }
+func GetCampaignByuser(userid any) ([]Campaign, error) {
+	query := `SELECT campaign_id, user_id, title, description, target_amount, amount_raised, status, created_at, updated_at 
+              FROM "Campaign" WHERE user_id = $1`
+	rows, err := db.DB.Query(query, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var campaigns []Campaign
+	for rows.Next() {
+		var campaign Campaign
+		if err := rows.Scan(&campaign.CampaignID, &campaign.UserID, &campaign.Title, &campaign.Description,
+			&campaign.TargetAmount, &campaign.AmountRaised, &campaign.Status, &campaign.CreatedAt, &campaign.UpdatedAt); err != nil {
+			return nil, err
+		}
+		campaigns = append(campaigns, campaign)
+	}
+
+	return campaigns, nil
+}

@@ -26,6 +26,7 @@ func SetupRouter() *gin.Engine {
 		campaignRoutes.POST("/", handlers.CreateCampaignHandler) // Create a new campaign
 		campaignRoutes.PUT("/:id", handlers.UpdateCampaignHandler)
 		campaignRoutes.DELETE("/:id", handlers.DeleteCampaignHandler)
+		campaignRoutes.GET("/user/:id", handlers.GetCampaignsbyUser)
 	}
 	router.GET("/campaigns/search", handlers.SearchCampaignsHandler)
 	router.GET("/campaigns/", handlers.GetCampaignsHandler)

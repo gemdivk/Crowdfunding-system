@@ -3,7 +3,9 @@ package handlers
 import (
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 func CreateCampaignHandler(c *gin.Context) {
@@ -26,7 +28,11 @@ func CreateCampaignHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, campaign)
+	c.JSON(http.StatusCreated, gin.H{
+		"success":  true,
+		"message":  "Campaign created successfully",
+		"campaign": campaign, // Returning the created campaign details
+	})
 }
 
 func GetCampaignsHandler(c *gin.Context) {
@@ -63,7 +69,7 @@ func UpdateCampaignHandler(c *gin.Context) {
 
 	var campaign models.Campaign
 	if err := c.BindJSON(&campaign); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -75,7 +81,11 @@ func UpdateCampaignHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, campaign)
+	c.JSON(http.StatusOK, gin.H{
+		"success":  true,
+		"message":  "Campaign updated successfully",
+		"campaign": campaign, // Returning the created campaign details
+	})
 }
 func DeleteCampaignHandler(c *gin.Context) {
 	_, exists := c.Get("userID")
@@ -106,6 +116,33 @@ func SearchCampaignsHandler(c *gin.Context) {
 	campaigns, err := models.SearchCampaigns(query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search campaigns"})
+		return
+	}
+
+	c.JSON(http.StatusOK, campaigns)
+}
+
+func GetCampaignsbyUser(c *gin.Context) {
+
+	userid, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in first"})
+		return
+	}
+	userIDParam := c.Param("id")
+	userID, err := strconv.Atoi(userIDParam)
+	if err != nil {
+		log.Println("Invalid user ID:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	if userid != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you don't have any permission do it"})
+		return
+	}
+	campaigns, err := models.GetCampaignByuser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve campaigns"})
 		return
 	}
 

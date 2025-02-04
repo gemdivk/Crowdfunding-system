@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const searchInput = document.getElementById("searchInput");
 
     // Check if the elements exist
-    if (!searchForm || !searchInput || !campaignList) {
+   if (!searchForm || !searchInput || !campaignList) {
         console.error("Required DOM elements are missing.");
         return;
     }
@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     campaignDiv.className = "campaign";
                     campaignDiv.innerHTML = `
                         <h3>${campaign.title}</h3>
+                        <p>${campaign.campaign_id}</p>
                         <p>${campaign.description}</p>
                         <p><strong>Goal:</strong> $${campaign.target_amount}</p>
                         <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
@@ -85,3 +86,5 @@ document.addEventListener("DOMContentLoaded", async () => {
         fetchCampaigns(query); // Re-fetch campaigns based on the query in the URL
     });
 });
+
+
