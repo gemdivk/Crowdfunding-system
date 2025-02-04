@@ -10,18 +10,26 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
+	router.Static("/static", "./frontend")
 
+	// Route to serve the HTML file
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
+
+	// Load HTML templates (if you have multiple .html files)
+	router.LoadHTMLGlob("frontend/*.html")
 	// Campaign routes
 	campaignRoutes := router.Group("/campaigns")
 	{
 		campaignRoutes.Use(middleware.AuthMiddleware())
 		campaignRoutes.POST("/", handlers.CreateCampaignHandler) // Create a new campaign
-		campaignRoutes.GET("/", handlers.GetCampaignsHandler)    // Get all campaigns
-		campaignRoutes.GET("/:id", handlers.GetCampaignId)
 		campaignRoutes.PUT("/:id", handlers.UpdateCampaignHandler)
 		campaignRoutes.DELETE("/:id", handlers.DeleteCampaignHandler)
-
 	}
+	router.GET("/campaigns/search", handlers.SearchCampaignsHandler)
+	router.GET("/campaigns/", handlers.GetCampaignsHandler)
+	router.GET("/campaigns/:id", handlers.GetCampaignId)
 	router.POST("/register", handlers.RegisterUser)
 	router.POST("/login", handlers.LoginUser)
 	router.POST("/logout", handlers.LogoutUser)

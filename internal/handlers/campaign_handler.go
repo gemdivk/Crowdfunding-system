@@ -93,3 +93,21 @@ func DeleteCampaignHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Campaign deleted successfully"})
 }
+func SearchCampaignsHandler(c *gin.Context) {
+	// Get search query from request URL (e.g., ?query=keyword)
+	query := c.DefaultQuery("query", "")
+
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Search query is required"})
+		return
+	}
+
+	// Call the model function to search campaigns
+	campaigns, err := models.SearchCampaigns(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search campaigns"})
+		return
+	}
+
+	c.JSON(http.StatusOK, campaigns)
+}

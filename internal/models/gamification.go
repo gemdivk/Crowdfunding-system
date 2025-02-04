@@ -21,8 +21,6 @@ type Achievement struct {
 	AchievedAt      time.Time `json:"achieved_at"`
 }
 
-// --- User Points CRUD ---
-
 func GetAllUserPoints() ([]UserPoints, error) {
 	var points []UserPoints
 	query := `SELECT user_id, points, created_at, updated_at FROM "UserPoints"`

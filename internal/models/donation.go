@@ -16,6 +16,7 @@ type Donation struct {
 }
 
 func CreateDonation(donation *Donation) error {
+
 	query := `INSERT INTO "Donation" (user_id, campaign_id, amount, donation_date) 
           VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING donation_id`
 
