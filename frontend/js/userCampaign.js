@@ -108,7 +108,11 @@ function createCampaign() {
     const token = localStorage.getItem("token");
     const decoded = jwt_decode(token);
     const userId = decoded.UserID;
-
+    const category = document.getElementById('create-category').value;
+    if (!title || !description || !targetAmount || !status || !category) {
+        alert("Please fill in all fields.");
+        return;
+    }
     if (!userId) {
         console.error("User ID not found");
         return;
@@ -119,6 +123,7 @@ function createCampaign() {
         description: description,
         target_amount: parseFloat(targetAmount),
         status: status,
+        category:category,
     };
 
     // Send a POST request to create the campaign

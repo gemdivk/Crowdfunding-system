@@ -10,13 +10,14 @@ import (
 
 func CreateCampaignHandler(c *gin.Context) {
 
-	_, exists := c.Get("userID")
+	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in first"})
 		return
 	}
-
 	var campaign models.Campaign
+	campaign.UserID = userID.(int)
+
 	if err := c.BindJSON(&campaign); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -29,14 +30,25 @@ func CreateCampaignHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"success":  true,
-		"message":  "Campaign created successfully",
-		"campaign": campaign, // Returning the created campaign details
+		"success": true,
+		"message": "Campaign created successfully",
+		"campaign": gin.H{
+			"campaign_id":   campaign.CampaignID,
+			"user_id":       campaign.UserID,
+			"title":         campaign.Title,
+			"description":   campaign.Description,
+			"target_amount": campaign.TargetAmount,
+			"status":        campaign.Status,
+			"category":      campaign.Category, // Ensure category is part of the response
+			"created_at":    campaign.CreatedAt,
+			"updated_at":    campaign.UpdatedAt,
+		},
 	})
 }
 
 func GetCampaignsHandler(c *gin.Context) {
-	campaigns, err := models.GetAllCampaigns()
+	category := c.DefaultQuery("category", "")
+	campaigns, err := models.GetAllCampaigns(category)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve campaigns"})
 		return

@@ -10,9 +10,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Function to fetch campaigns
-    async function fetchCampaigns(query = "") {
-        const url = query ? `http://localhost:8080/campaigns/search?query=${query}` : "http://localhost:8080/campaigns/";
-
+    async function fetchCampaigns(query = "", category = "") {
+        const url = category ? `http://localhost:8080/campaigns?category=${category}` :
+            query ? `http://localhost:8080/campaigns/search?query=${query}` :
+                "http://localhost:8080/campaigns/";
         try {
             const response = await fetch(url);
 
@@ -49,7 +50,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <h3>${campaign.title}</h3>
                         <p>${campaign.campaign_id}</p>
                         <p>${campaign.description}</p>
+                        <p>Category:${campaign.category}</p>
                         <p><strong>Goal:</strong> $${campaign.target_amount}</p>
+                        <p>Amount raised: ${campaign.amount_raised}</p>
+
                         <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
                     `;
                     campaignList.appendChild(campaignDiv);
@@ -59,9 +63,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Error fetching campaigns:", error);
         }
     }
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get("category");
+    const searchQuery = urlParams.get("search");
 
-    // Initial fetch for all campaigns
-    fetchCampaigns();
+    fetchCampaigns(searchQuery, category);
 
     // Event listener for the search form submission
     searchForm.addEventListener("submit", (e) => {
@@ -82,8 +88,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.addEventListener('popstate', () => {
         const queryParams = new URLSearchParams(window.location.search);
         const query = queryParams.get('search') || '';
+        const category = queryParams.get('category') || '';
         searchInput.value = query; // Optionally update the search input with the query
-        fetchCampaigns(query); // Re-fetch campaigns based on the query in the URL
+        fetchCampaigns(query, category); // Re-fetch campaigns based on the query in the URL
     });
 });
 

@@ -16,10 +16,21 @@ type Campaign struct {
 	TargetAmount float64   `json:"target_amount"`
 	AmountRaised float64   `json:"amount_raised"`
 	Status       string    `json:"status"`
+	Category     string    `json:"category"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
+var allowedCategories = map[string]bool{
+	"Charity": true, "Health": true, "Education": true, "Environment": true,
+	"Animal Welfare": true, "Film": true, "Food Security": true, "Games": true,
+	"Journalism": true, "Music": true, "Photography": true, "Publishing": true,
+	"Technology": true, "Discover": true,
+}
+
+func IsValidCategory(category string) bool {
+	return allowedCategories[category]
+}
 func CreateCampaign(campaign Campaign) error {
 
 	var userExists bool
@@ -34,9 +45,9 @@ func CreateCampaign(campaign Campaign) error {
 		return fmt.Errorf("user with ID %d does not exist", campaign.UserID)
 	}
 
-	query := `INSERT INTO "Campaign" (user_id, title, description, target_amount, status) 
-              VALUES ($1, $2, $3, $4, $5) RETURNING campaign_id, created_at, updated_at`
-	err = db.DB.QueryRow(query, campaign.UserID, campaign.Title, campaign.Description, campaign.TargetAmount, campaign.Status).
+	query := `INSERT INTO "Campaign" (user_id, title, description, target_amount, status, category) 
+              VALUES ($1, $2, $3, $4, $5, $6) RETURNING campaign_id, created_at, updated_at`
+	err = db.DB.QueryRow(query, campaign.UserID, campaign.Title, campaign.Description, campaign.TargetAmount, campaign.Status, campaign.Category).
 		Scan(&campaign.CampaignID, &campaign.CreatedAt, &campaign.UpdatedAt)
 	if err != nil {
 		log.Printf("Error inserting campaign: %v", err)
@@ -44,8 +55,20 @@ func CreateCampaign(campaign Campaign) error {
 	}
 	return nil
 }
-func GetAllCampaigns() ([]Campaign, error) {
-	rows, err := db.DB.Query(`SELECT campaign_id, user_id, title, description, target_amount, amount_raised, status, created_at, updated_at FROM "Campaign"`)
+func GetAllCampaigns(category string) ([]Campaign, error) {
+	// Base query to select all campaigns
+	query := `SELECT campaign_id, user_id, title, description, target_amount,amount_raised, status,category, created_at, updated_at FROM "Campaign"`
+	var rows *sql.Rows
+	var err error
+
+	// If category is not empty, add a WHERE clause for filtering by category
+	if category != "" {
+		query += ` WHERE category = $1`
+		rows, err = db.DB.Query(query, category)
+	} else {
+		rows, err = db.DB.Query(query)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +78,12 @@ func GetAllCampaigns() ([]Campaign, error) {
 	for rows.Next() {
 		var campaign Campaign
 		if err := rows.Scan(&campaign.CampaignID, &campaign.UserID, &campaign.Title, &campaign.Description,
-			&campaign.TargetAmount, &campaign.AmountRaised, &campaign.Status, &campaign.CreatedAt, &campaign.UpdatedAt); err != nil {
+			&campaign.TargetAmount, &campaign.AmountRaised, &campaign.Status, &campaign.Category, &campaign.CreatedAt, &campaign.UpdatedAt); err != nil {
 			return nil, err
 		}
 		campaigns = append(campaigns, campaign)
 	}
-
+	log.Printf("Returning campaigns: %+v", campaigns)
 	return campaigns, nil
 }
 func GetCampaignById(campaignid string) (*Campaign, error) {
