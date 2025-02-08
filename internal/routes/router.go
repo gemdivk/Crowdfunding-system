@@ -11,7 +11,7 @@ import (
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Static("/static", "./frontend")
-
+	router.Static("/uploads", "./uploads")
 	// Route to serve the HTML file
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const searchInput = document.getElementById("searchInput");
 
     // Check if the elements exist
-   if (!searchForm || !searchInput || !campaignList) {
+    if (!searchForm || !searchInput || !campaignList) {
         console.error("Required DOM elements are missing.");
         return;
     }
@@ -15,10 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             const response = await fetch(url);
-
-            // Log the raw response to check if it's valid
-            console.log("Response:", response);
-
             if (!response.ok) {
                 console.error('Failed to fetch campaigns', response.status);
                 return;
@@ -27,14 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             let campaigns = await response.json();
             if (campaigns === null) {
                 campaigns = [];
-            }
-            // Log the parsed campaigns to ensure they are in the expected format
-            console.log("Campaigns:", campaigns);
-
-            // Check if campaigns is an array
-            if (!Array.isArray(campaigns)) {
-                console.error("Invalid response format: expected an array of campaigns.");
-                return;
             }
 
             campaignList.innerHTML = ''; // Clear the campaign list before displaying new results
@@ -45,13 +33,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                 campaigns.forEach(campaign => {
                     const campaignDiv = document.createElement("div");
                     campaignDiv.className = "campaign";
+
+                    // Create a media section (image or document)
+                    let mediaContent = "";
+                    if (campaign.media) {
+                        if (campaign.media.endsWith(".jpg") || campaign.media.endsWith(".png") || campaign.media.endsWith(".jpeg")) {
+                            // Image file
+                            mediaContent = `<img src="uploads/${campaign.media}" alt="${campaign.title}" class="campaign-media" />`;
+                        } else if (campaign.media.endsWith(".pdf")) {
+                            // Document file (example for PDF)
+                            mediaContent = `<a href="uploads/${campaign.media}" target="_blank" class="campaign-media">View Document</a>`;
+                        }
+                    }
+
                     campaignDiv.innerHTML = `
-                        <h3>${campaign.title}</h3>
-                        <p>${campaign.campaign_id}</p>
-                        <p>${campaign.description}</p>
-                        <p><strong>Goal:</strong> $${campaign.target_amount}</p>
-                        <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
-                    `;
+                    <h3>${campaign.title}</h3>
+                    <p>${campaign.campaign_id}</p>
+                    <p>${campaign.description}</p>
+                    <p><strong>Goal:</strong> $${campaign.target_amount}</p>
+                    ${mediaContent}  <!-- Display image or document -->
+                    <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
+                `;
                     campaignList.appendChild(campaignDiv);
                 });
             }
@@ -59,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Error fetching campaigns:", error);
         }
     }
+
 
     // Initial fetch for all campaigns
     fetchCampaigns();
@@ -69,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const query = searchInput.value.trim();  // Get the query from the input field
 
         // Update the URL without reloading the page
-       if (query) {
+        if (query) {
             history.pushState({}, "", `?search=${query}`); // Update URL
         } else {
             history.pushState({}, "", "/"); // Reset the URL when search is empty

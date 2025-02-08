@@ -30,6 +30,7 @@ async function fetchUserCampaigns() {
             <h3>${campaign.title}</h3>
             <p>${campaign.description}</p>
               <p>${campaign.campaign_id}</p>
+               <img src="/uploads/${campaign.media}" alt="Campaign Image">
             <p><strong>Target:</strong> $${campaign.target_amount}</p>
             <p><strong>Raised:</strong> $${campaign.amount_raised}</p>
             <p><strong>Status:</strong> ${campaign.status}</p>
@@ -105,6 +106,7 @@ function createCampaign() {
     const description = document.getElementById('create-description').value;
     const targetAmount = document.getElementById('create-target-amount').value;
     const status = document.getElementById('create-status').value;
+    const mediaFile = document.getElementById('create-media').files[0];
     const token = localStorage.getItem("token");
     const decoded = jwt_decode(token);
     const userId = decoded.UserID;
@@ -119,6 +121,7 @@ function createCampaign() {
         description: description,
         target_amount: parseFloat(targetAmount),
         status: status,
+        media: mediaFile,
     };
 
     // Send a POST request to create the campaign
@@ -169,9 +172,10 @@ async function editCampaign(campaign_id) {
     const newTargetAmount = prompt("Enter new target amount:");
     const token = localStorage.getItem("token");
     const decoded = jwt_decode(token);
+    const mediaFile = document.getElementById('edit-media').files[0];
     const userId = decoded.UserID;
     const status = prompt("Enter desired new status")
-    if (!newTitle || !newDescription || !newTargetAmount || !status) {
+    if (!newTitle || !newDescription || !newTargetAmount || !status || !mediaFile) {
         alert("All fields are required!");
         return;
     }
@@ -181,6 +185,7 @@ async function editCampaign(campaign_id) {
         description: newDescription,
         target_amount: targetAmountNum,
         status:status,
+        media: mediaFile,
     };
 
 //    console.log("Sending data:", JSON.stringify(campaignData));
@@ -189,7 +194,7 @@ async function editCampaign(campaign_id) {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bear ${token}`,
         },
         body: JSON.stringify(campaignData),
     })
