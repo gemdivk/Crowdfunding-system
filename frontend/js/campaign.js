@@ -1,116 +1,227 @@
+let campaignList;
+
 document.addEventListener("DOMContentLoaded", async () => {
-    const campaignList = document.getElementById("campaign-list");
+    campaignList = document.getElementById("campaign-list");
     const searchForm = document.getElementById("searchForm");
     const searchInput = document.getElementById("searchInput");
 
-    // Check if the elements exist
-   if (!searchForm || !searchInput || !campaignList) {
+    // Ensure required DOM elements are present
+    if (!searchForm || !searchInput || !campaignList) {
         console.error("Required DOM elements are missing.");
         return;
     }
 
-    // Function to fetch campaigns
-    async function fetchCampaigns(query = "", category = "") {
-        const url = category ? `http://localhost:8080/campaigns?category=${category}` :
-            query ? `http://localhost:8080/campaigns/search?query=${query}` :
-                "http://localhost:8080/campaigns/";
-        try {
-            const response = await fetch(url);
-
-            // Log the raw response to check if it's valid
-            console.log("Response:", response);
-
-            if (!response.ok) {
-                console.error('Failed to fetch campaigns', response.status);
-                return;
-            }
-
-            let campaigns = await response.json();
-            if (campaigns === null) {
-                campaigns = [];
-            }
-            // Log the parsed campaigns to ensure they are in the expected format
-            console.log("Campaigns:", campaigns);
-
-            // Check if campaigns is an array
-            if (!Array.isArray(campaigns)) {
-                console.error("Invalid response format: expected an array of campaigns.");
-                return;
-            }
-
-            campaignList.innerHTML = ''; // Clear the campaign list before displaying new results
-
-            if (campaigns.length === 0) {
-                campaignList.innerHTML = '<p>No campaigns found.</p>';
-            } else {
-                campaigns.forEach(campaign => {
-                    const campaignDiv = document.createElement("div");
-                    campaignDiv.className = "campaign";
-                    campaignDiv.innerHTML = `
-                        <h3>${campaign.title}</h3>
-                        <p>${campaign.campaign_id}</p>
-                        <p>${campaign.description}</p>
-                        <p>Category:${campaign.category}</p>
-                        <p><strong>Goal:</strong> $${campaign.target_amount}</p>
-                        <p>Amount raised: ${campaign.amount_raised}</p>
-
-                        <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
-                    `;
-                    campaignList.appendChild(campaignDiv);
-                });
-            }
-        } catch (error) {
-            console.error("Error fetching campaigns:", error);
-        }
-    }
+    // Read URL parameters for filters
     const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get("category");
-    const searchQuery = urlParams.get("search");
+    const category = urlParams.get("category") || "";
+    const query = urlParams.get("search") || "";
+    const targetAmount = urlParams.get("target_amount") || "";
+    const amountRaised = urlParams.get("amount_raised") || "";
 
-    fetchCampaigns(searchQuery, category);
+    // Initial fetch with the URL parameters
+    fetchCampaigns(query, category, targetAmount, amountRaised);
 
-    // Event listener for the search form submission
+    // Set the initial value and listener on the category dropdown
+    categoryFilter();
+
+    // Event listener for search form submission
     searchForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const query = searchInput.value.trim();  // Get the query from the input field
+        const query = searchInput.value.trim(); // Get the query from the input field
 
-        // Update the URL without reloading the page
-       if (query) {
-            history.pushState({}, "", `?search=${query}`); // Update URL
+        // Update the URL without reloading the page (fixing extra spaces)
+        if (query) {
+            history.pushState({}, "", `?search=${encodeURIComponent(query)}`);
         } else {
-            history.pushState({}, "", "/"); // Reset the URL when search is empty
+            history.pushState({}, "", window.location.pathname);
         }
 
-        fetchCampaigns(query);  // Fetch campaigns based on the search query
+        // Get current filter values from URL and re-fetch
+        const currentParams = new URLSearchParams(window.location.search);
+        const newCategory = currentParams.get("category") || "";
+        const newTargetAmount = currentParams.get("target_amount") || "";
+        const newAmountRaised = currentParams.get("amount_raised") || "";
+        fetchCampaigns(query, newCategory, newTargetAmount, newAmountRaised);
     });
 
-    // Optionally handle back/forward navigation to maintain the state when user presses browser buttons
+    // Handle back/forward navigation to maintain filter state
     window.addEventListener('popstate', () => {
         const queryParams = new URLSearchParams(window.location.search);
         const query = queryParams.get('search') || '';
         const category = queryParams.get('category') || '';
-        searchInput.value = query; // Optionally update the search input with the query
-        fetchCampaigns(query, category); // Re-fetch campaigns based on the query in the URL
+        const targetAmount = queryParams.get("target_amount") || "";
+        const amountRaised = queryParams.get("amount_raised") || "";
+        searchInput.value = query; // Update the search input field
+        fetchCampaigns(query, category, targetAmount, amountRaised);
     });
 });
 
+async function fetchCampaigns(query = "", category = "", targetAmount = "", amountRaised = "") {
+    const params = new URLSearchParams();
+    if (query) params.set("search", query);
+    if (category) params.set("category", category);
+    if (targetAmount) params.set("target_amount", targetAmount);
+    if (amountRaised) params.set("amount_raised", amountRaised);
+
+    const url = `http://localhost:8080/campaigns?${params.toString()}`;
+    console.log("Fetching campaigns with URL:", url);
+
+    // If a category is selected, update the UI to show the filter form
+    if (category !== "") {
+        hideElements();
+        showFilterForm();
+
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error('Failed to fetch campaigns', response.status);
+            return;
+        }
+
+        let campaigns = await response.json();
+        if (campaigns === null) {
+            campaigns = [];
+        }
+
+        campaignList.innerHTML = ""; // Clear the campaign list
+        let mediaContent;
+        if (campaigns.length === 0) {
+            campaignList.innerHTML = "<p>No campaigns found.</p>";
+        } else {
+            campaigns.forEach(campaign => {
+                const campaignDiv = document.createElement("div");
+                campaignDiv.classList.add("campaign", "campaign-card");
+
+                campaignDiv.innerHTML = `
+                    <div class="campaign-media">   <img src="${campaign.media_path}" alt="Campaign Image"> </div>
+                    <h3>${campaign.title}</h3>  
+                    <p>${campaign.campaign_id}</p>
+                    <p>${campaign.description}</p>
+                    <p><strong>Goal:</strong> $${campaign.target_amount}</p>
+                    <p>Amount raised: ${campaign.amount_raised}</p>
+                    <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
+                `;
+
+                campaignDiv.addEventListener("click", (e) => {
+                    if (!e.target.closest(".donate-btn")) {
+                        window.location.href = `/static/campaign-details.html?id=${campaign.campaign_id}`;
+                    }
+                });
+
+                campaignList.appendChild(campaignDiv);
+            });
+        }
+    } catch (error) {
+        console.error("Error fetching campaigns:", error);
+    }
+}
+
+function hideElements() {
+    document.querySelectorAll(".hide-when-filter").forEach(element => {
+        element.style.display = "none";
+    });
+}
+
+function showFilterForm() {
+    const filterContainer = document.getElementById("filter-container");
+    if (filterContainer) {
+        filterContainer.style.display = "block";
+    }
+}
 
 function checkUserLoginStatus() {
     const token = localStorage.getItem("token");
+    const campaignMenu = document.getElementById("campaign-menu");
 
     if (!token) {
-        document.getElementById("campaign-menu").style.display = "none";
+        campaignMenu.style.display = "none";
         return;
     }
 
     const decoded = jwt_decode(token);
-
     const currentTime = Date.now() / 1000; // Current time in seconds
+
     if (decoded.exp < currentTime) {
-        document.getElementById("campaign-menu").style.display = "none";
+        campaignMenu.style.display = "none";
     } else {
-        document.getElementById("campaign-menu").style.display = "block";
+        campaignMenu.style.display = "block";
     }
 }
 
+function categoryFilter() {
+    const categoryDropdown = document.getElementById("category");
+    if (!categoryDropdown) return;
+
+    // Read the current category from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedCategory = urlParams.get("category") || "";
+    if (selectedCategory) {
+        categoryDropdown.value = selectedCategory;
+    }
+
+    // When the dropdown value changes, update the URL and reload
+    categoryDropdown.addEventListener("change", function () {
+        const newCategory = this.value;
+        const params = new URLSearchParams(window.location.search);
+        if (newCategory) {
+            params.set("category", newCategory);
+        } else {
+            params.delete("category");
+        }
+        // Reload page with updated filters
+        window.location.search = params.toString();
+    });
+
+    // Optionally, highlight any links that match the selected category
+    const links = document.querySelectorAll("li a");
+    links.forEach(link => {
+        if (link.href.includes(`category=${selectedCategory}`)) {
+            link.style.fontWeight = "bold";
+        }
+    });
+}
+
+document.getElementById("toggle-filters").addEventListener("click", function () {
+    const filterSection = document.getElementById("more-filters");
+    if (filterSection.style.display === "none" || filterSection.style.display === "") {
+        filterSection.style.display = "block";
+        this.textContent = "More Filters ▲";
+    } else {
+        filterSection.style.display = "none";
+        this.textContent = "More Filters ▼";
+    }
+});
+
+// Update filters when target amount or amount raised changes
+async function updateFilters() {
+    const category = document.getElementById("category").value;
+    const targetAmount = document.getElementById("target-amount").value;
+    const amountRaised = document.getElementById("amount-raised").value;
+    const query = document.getElementById("searchInput").value.trim();
+    const params = new URLSearchParams(window.location.search);
+    if (query) params.set("search", query);
+    if (category) {
+        params.set("category", category);
+    }
+    if (targetAmount) {
+        params.set("target_amount", targetAmount);
+    }
+    if (amountRaised) {
+        params.set("amount_raised", amountRaised);
+    }
+    window.history.pushState({}, "", `?${params.toString()}`);
+    // Reload page with new filters
+    window.location.search = params.toString();
+    await fetchCampaigns(searchQuery, category, targetAmount, amountRaised);
+}
+
+document.getElementById("target-amount").addEventListener("change", updateFilters);
+document.getElementById("amount-raised").addEventListener("change", updateFilters);
+document.getElementById("category").addEventListener("change", updateFilters);
+document.getElementById("searchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    updateFilters();
+});
 window.onload = checkUserLoginStatus;

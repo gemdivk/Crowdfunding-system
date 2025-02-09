@@ -30,6 +30,7 @@ async function fetchUserCampaigns() {
             <h3>${campaign.title}</h3>
             <p>${campaign.description}</p>
               <p>${campaign.campaign_id}</p>
+               <img src="${campaign.media_path}" alt="Campaign Image">
             <p><strong>Target:</strong> $${campaign.target_amount}</p>
             <p><strong>Raised:</strong> $${campaign.amount_raised}</p>
             <p><strong>Status:</strong> ${campaign.status}</p>
@@ -99,16 +100,17 @@ function hideCreateForm() {
     document.getElementById('create-form').style.display = 'none';
 }
 
-// Function to handle create campaign submission
-function createCampaign() {
+async function createCampaign() {
     const title = document.getElementById('create-title').value;
     const description = document.getElementById('create-description').value;
     const targetAmount = document.getElementById('create-target-amount').value;
     const status = document.getElementById('create-status').value;
+    const mediaFile = document.getElementById('create-media').files[0];
     const token = localStorage.getItem("token");
     const decoded = jwt_decode(token);
     const userId = decoded.UserID;
     const category = document.getElementById('create-category').value;
+
     if (!title || !description || !targetAmount || !status || !category) {
         alert("Please fill in all fields.");
         return;
@@ -117,98 +119,131 @@ function createCampaign() {
         console.error("User ID not found");
         return;
     }
-    const data = {
-        user_id: userId,          // Renamed to match the expected backend field name
-        title: title,    // Same for other properties
+
+    let mediaPath = null;
+
+    if (mediaFile) {
+
+        const formData = new FormData();
+        formData.append("media", mediaFile);
+
+        try {
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const uploadData = await uploadResponse.json();
+            if (!uploadData.success) {
+                alert("Failed to upload file");
+                return;
+            }
+
+            mediaPath = uploadData.file_url; // ✅ Store uploaded file URL
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            alert("File upload failed.");
+            return;
+        }
+    }
+
+
+    const campaignData = {
+        user_id: userId,
+        title: title,
         description: description,
         target_amount: parseFloat(targetAmount),
         status: status,
-        category:category,
+        category: category,
+        media_path: mediaPath,
     };
 
-    // Send a POST request to create the campaign
-    fetch('/campaigns/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Campaign created successfully!');
-                hideCreateForm();  // Hide form after successful submission
-                fetchUserCampaigns();   // Refresh the campaign list
-            } else {
-                alert('Failed to create campaign');
-            }
-        })
-        .catch(error => {
-            console.error('Error creating campaign:', error);
-            alert('An error occurred while creating the campaign.');
+    try {
+        const response = await fetch('/campaigns/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(campaignData),
         });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Campaign created successfully!');
+            hideCreateForm();
+            fetchUserCampaigns();
+        } else {
+            alert(`Failed to create campaign: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('Error creating campaign:', error);
+    }
 }
 fetchUserCampaigns();
+
 async function deleteCampaign(campaign_id) {
-    if (!confirm("Are you sure you want to delete this campaign?")) return;
+        if (!confirm("Are you sure you want to delete this campaign?")) return;
 
-    const response = await fetch(`/campaigns/${campaign_id}`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        const response = await fetch(`/campaigns/${campaign_id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        if (response.ok) {
+            alert("Campaign deleted!");
+            fetchMyCampaigns();
+        } else {
+            console.error("Error deleting campaign", response.status);
         }
-    });
+    }
 
-    if (response.ok) {
-        alert("Campaign deleted!");
-        fetchMyCampaigns();
-    } else {
-        console.error("Error deleting campaign", response.status);
-    }
-}
-async function editCampaign(campaign_id) {
-    const newTitle = prompt("Enter new title:");
-    const newDescription = prompt("Enter new description:");
-    const newTargetAmount = prompt("Enter new target amount:");
-    const token = localStorage.getItem("token");
-    const decoded = jwt_decode(token);
-    const userId = decoded.UserID;
-    const status = prompt("Enter desired new status")
-    if (!newTitle || !newDescription || !newTargetAmount || !status) {
-        alert("All fields are required!");
-        return;
-    }
-    const targetAmountNum = parseFloat(newTargetAmount)
-    const campaignData = {
-        title: newTitle,
-        description: newDescription,
-        target_amount: targetAmountNum,
-        status:status,
-    };
+ async function editCampaign(campaign_id) {
+        const newTitle = prompt("Enter new title:");
+        const newDescription = prompt("Enter new description:");
+        const newTargetAmount = prompt("Enter new target amount:");
+        const token = localStorage.getItem("token");
+        const decoded = jwt_decode(token);
+        const mediaFile = document.getElementById('edit-media').files[0];
+        const userId = decoded.UserID;
+        const status = prompt("Enter desired new status")
+        if (!newTitle || !newDescription || !newTargetAmount || !status || !mediaFile) {
+            alert("All fields are required!");
+            return;
+        }
+        const targetAmountNum = parseFloat(newTargetAmount)
+        const campaignData = {
+            title: newTitle,
+            description: newDescription,
+            target_amount: targetAmountNum,
+            status: status,
+            media_path: mediaFile,
+        };
 
 //    console.log("Sending data:", JSON.stringify(campaignData));
 
-    fetch(`/campaigns/${campaign_id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(campaignData),
-    })
-        .then(response => response.json())
-        .then(campaignData => {
-            if (campaignData.success) {
-                alert("Campaign updated successfully!");
-                fetchUserCampaigns();  // Refresh the campaign list
-            } else {
-                alert(`Failed to update campaign: ${data.message || 'Unknown error'}`);
-            }
+        fetch(`/campaigns/${campaign_id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bear ${token}`,
+            },
+            body: JSON.stringify(campaignData),
         })
-        .catch(error => {
-            console.error("Error updating campaign", error);
-            alert("An error occurred while updating the campaign.");
-        });
+            .then(response => response.json())
+            .then(campaignData => {
+                if (campaignData.success) {
+                    alert("Campaign updated successfully!");
+                    fetchUserCampaigns();  // Refresh the campaign list
+                } else {
+                    alert(`Failed to update campaign: ${data.message || 'Unknown error'}`);
+                }
+            })
+            .catch(error => {
+                console.error("Error updating campaign", error);
+                alert("An error occurred while updating the campaign.");
+            });
+
 }

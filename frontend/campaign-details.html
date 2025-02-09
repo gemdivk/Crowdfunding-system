@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Details</title>
+
+    <style>
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .campaign-img,
+        .campaign-video {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        #donate-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #donate-btn:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="/static/js/styles.css">
+</head>
+<body>
+<div id="campaign-details" class="container">
+    <h2 id="campaign-title"></h2>
+    <div id="campaign-media"></div>
+    <p id="campaign-description"></p>
+    <p><strong>Goal:</strong> $<span id="campaign-goal"></span></p>
+    <p><strong>Amount Raised:</strong> $<span id="campaign-raised"></span></p>
+    <button id="donate-btn">Donate Now</button>
+</div>
+
+<script src="/static/js/details.js"></script>
+</body>
+</html>

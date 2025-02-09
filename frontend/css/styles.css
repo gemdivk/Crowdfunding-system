@@ -1,78 +1,3 @@
-/* Your existing body styling */
-
-.campaign-item {
-    background: #fff;
-    padding: 20px;
-    margin: 15px 0;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-}
-
-.campaign-item:hover {
-    transform: translateY(-5px);
-}
-
-.campaign-item h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.campaign-item p {
-    color: #666;
-    margin: 5px 0;
-}
-
-button {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover {
-    opacity: 0.8;
-}
-
-.social-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.social-buttons a {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 15px;
-    border-radius: 6px;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background 0.3s, transform 0.2s;
-}
-
-.social-buttons a:hover {
-    transform: scale(1.05);
-}
-
-.share-twitter {
-    background: linear-gradient(135deg, #1da1f2, #0d8ddb);
-}
-
-.share-linkedin {
-    background: linear-gradient(135deg, #0077b5, #005582);
-}
-
-.social-buttons svg {
-    width: 20px;
-    height: 20px;
-    fill: white;
-}
-
-
 body {
     font-family: 'Abhaya Libre', Arial, sans-serif;
     margin: 0;
@@ -176,101 +101,6 @@ nav ul li a {
     margin-top: 5px;
 }
 
-/* Container for content */
-.container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 5px;
-}
-
-/* Button styling */
-.btn {
-    display: inline-block;
-    padding: 10px 15px;
-    background: #007BFF;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-}
-.campaigns-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between; /* Align items evenly */
-}
-.campaign-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between; /* Align items evenly */
-}
-
-/* Individual campaign card */
-.campaign {
-    background: white;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
-    width: calc(33.333% - 20px); /* Three items per row, subtracting gap width */
-    box-sizing: border-box; /* Ensures padding does not affect width */
-}
-
-/* Responsiveness: Adjust campaign width for smaller screens */
-@media (max-width: 768px) {
-    .campaign {
-        width: calc(50% - 20px); /* Two items per row on medium screens */
-    }
-}
-
-@media (max-width: 480px) {
-    .campaign {
-        width: 100%; /* One item per row on small screens */
-    }
-}
-/*
-
-/* Search form styles */
-#searchForm {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    background-color: #fff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-#searchInput {
-    padding: 10px;
-    font-size: 16px;
-    width: 250px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    outline: none;
-}
-
-#searchInput:focus {
-    border-color: #007BFF;
-}
-
-button {
-    padding: 10px 15px;
-    font-size: 16px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
 
 #background-coins {
     position: fixed;
@@ -317,7 +147,6 @@ button:hover {
     }
 }
 
-
 .buttons a {
     display: inline-flex;
     align-items: center;
@@ -359,4 +188,42 @@ header {
     opacity: 0.8;
     transform: translateY(-2px);
     background-color: #0f7a00;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 600px;
+    padding: 12px 15px 12px 40px;
+    border-radius: 25px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    font-size: 16px;
+    outline: none;
+    background: white url('https://cdn-icons-png.flaticon.com/512/622/622669.png') no-repeat 10px center;
+    background-size: 20px;
+}
+
+.search-input::placeholder {
+    color: gray;
+}
+.campaign-card {
+    background: white;  /* Ensuring a white background */
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.campaign-media img,
+.campaign-media video {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.campaign-info {
+    text-align: center;
 }
