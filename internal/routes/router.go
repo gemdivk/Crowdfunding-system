@@ -43,7 +43,11 @@ func SetupRouter() *gin.Engine {
 		donationRoutes.POST("/", handlers.CreateDonation) // Donate to a campaign
 		donationRoutes.GET("/", handlers.GetDonationsByCampaign)
 	}
-
+	donation := router.Group("/donations")
+	{
+		donation.Use(middleware.AuthMiddleware())
+		donation.GET("/my/:userID", handlers.MyDonationsHandler)
+	}
 	router.GET("/donations/user/:user_id", handlers.GetDonationsByUser)
 	//	router.PUT("/donations/:id", handlers.UpdateDonation)
 	//	router.DELETE("/donations/:id", handlers.DeleteDonation)

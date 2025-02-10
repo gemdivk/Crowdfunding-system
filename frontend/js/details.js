@@ -13,6 +13,11 @@ async function loadCampaignDetails() {
 
         const mediaContainer = document.getElementById("campaign-media");
         mediaContainer.innerHTML = `<img src="${campaign.media_path}" alt="Campaign Image" class="campaign-img">`;
+        const goal = Number(campaign.target_amount);
+        const raised = Number(campaign.amount_raised);
+        const progressPercentage = Math.min((raised / goal) * 100, 100);
+        document.getElementById("progress-bar").style.width = progressPercentage + "%";
+        document.getElementById("progress-percent").innerText = progressPercentage.toFixed(1) + "%";
 
 
         document.getElementById("donate-btn").addEventListener("click", () => {

@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (donationResponse.ok) {
                     alert("Donation successful!");
-                    window.location.href = "/static/campaign.html";
+                    window.location.href = "/static/myDonations.html";
                 } else {
                     alert("Donation failed.");
                 }

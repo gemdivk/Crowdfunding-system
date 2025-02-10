@@ -75,6 +75,24 @@ func CreateDonation(c *gin.Context) {
 		"stripe_payment": donation.StripePaymentID,
 	})
 }
+
+func MyDonationsHandler(c *gin.Context) {
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	donations, err := models.GetDonationsByUserWithCampaigns(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve donations"})
+		return
+	}
+
+	c.JSON(http.StatusOK, donations)
+}
+
 func CreatePaymentIntent(c *gin.Context) {
 	stripe.Key = os.Getenv("STRIPE_KEY")
 
