@@ -227,3 +227,7 @@ header {
 .campaign-info {
     text-align: center;
 }
+.social-buttons {
+    display: flex; /* or block */
+    gap: 10px;
+}

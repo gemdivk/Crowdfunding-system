@@ -8,18 +8,19 @@ import (
 )
 
 type Donation struct {
-	ID           int       `json:"id"`
-	CampaignID   int       `json:"campaign_id"` // Changed to int
-	UserID       int       `json:"user_id"`     // Changed to int
-	Amount       float64   `json:"amount"`
-	DonationDate time.Time `json:"donation_date"`
+	ID              int       `json:"id"`
+	CampaignID      int       `json:"campaign_id"` // Changed to int
+	UserID          int       `json:"user_id"`     // Changed to int
+	Amount          float64   `json:"amount"`
+	DonationDate    time.Time `json:"donation_date"`
+	StripePaymentID string    `json:"stripe_payment_id"`
 }
 
 func CreateDonation(donation *Donation) error {
 
-	query := `INSERT INTO "Donation" (user_id, campaign_id, amount, donation_date) 
-          VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING donation_id`
-	err := db.DB.QueryRow(query, donation.UserID, donation.CampaignID, donation.Amount).
+	query := `INSERT INTO "Donation" (user_id, campaign_id, amount, donation_date, stripe_payment_id) 
+          VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4) RETURNING donation_id`
+	err := db.DB.QueryRow(query, donation.UserID, donation.CampaignID, donation.Amount, donation.StripePaymentID).
 		Scan(&donation.ID)
 	if err != nil {
 		return fmt.Errorf("Failed to insert donation: %v", err)

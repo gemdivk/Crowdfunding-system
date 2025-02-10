@@ -30,7 +30,7 @@ async function fetchUserCampaigns() {
             <h3>${campaign.title}</h3>
             <p>${campaign.description}</p>
               <p>${campaign.campaign_id}</p>
-               <img src="${campaign.media_path}" alt="Campaign Image">
+             <div class="campaign-media">   <img src="${campaign.media_path}" alt="Campaign Image"> </div>
             <p><strong>Target:</strong> $${campaign.target_amount}</p>
             <p><strong>Raised:</strong> $${campaign.amount_raised}</p>
             <p><strong>Status:</strong> ${campaign.status}</p>

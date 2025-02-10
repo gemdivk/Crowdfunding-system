@@ -160,6 +160,65 @@
                 display: none;
 
             }
+            #filter-container {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                margin: auto;
+                font-family: Arial, sans-serif;
+            }
+
+            #filter-container label {
+                font-weight: bold;
+                display: block;
+                margin-top: 10px;
+            }
+
+            #filter-container select {
+                width: 100%;
+                padding: 8px;
+                margin-top: 5px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background: white;
+                cursor: pointer;
+            }
+
+            #toggle-filters {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px;
+                width: 100%;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-top: 10px;
+                font-size: 14px;
+                transition: background 0.3s;
+            }
+
+            #toggle-filters:hover {
+                background: #0056b3;
+            }
+
+            #more-filters {
+                display: none;
+                padding-top: 10px;
+                animation: fadeIn 0.3s ease-in-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-5px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
     </style>
 
 </head>

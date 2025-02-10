@@ -73,11 +73,6 @@ func GetAllCampaigns(category, search string, targetAmount, amountRaised float64
 		args = append(args, category)
 		argIndex++
 	}
-	if search != "" {
-		query += fmt.Sprintf(" AND (title ILIKE $%d OR description ILIKE $%d)", argIndex, argIndex+1)
-		args = append(args, "%"+search+"%", "%"+search+"%")
-		argIndex += 2
-	}
 
 	if targetAmount > 0 {
 		query += fmt.Sprintf(" AND target_amount <= $%d", argIndex)
@@ -90,7 +85,11 @@ func GetAllCampaigns(category, search string, targetAmount, amountRaised float64
 		args = append(args, amountRaised)
 		argIndex++
 	}
-
+	if search != "" {
+		query += fmt.Sprintf(" AND (title ILIKE $%d OR description ILIKE $%d)", argIndex, argIndex+1)
+		args = append(args, "%"+search+"%", "%"+search+"%")
+		argIndex += 2
+	}
 	rows, err := db.DB.Query(query, args...)
 	if err != nil {
 		return nil, err

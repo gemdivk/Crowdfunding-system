@@ -24,23 +24,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Set the initial value and listener on the category dropdown
     categoryFilter();
 
+    document.getElementById("target-amount").addEventListener("change", updateFilters);
+    document.getElementById("amount-raised").addEventListener("change", updateFilters);
+    document.getElementById("category").addEventListener("change", updateFilters);
     // Event listener for search form submission
     searchForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const query = searchInput.value.trim(); // Get the query from the input field
+        const query = searchInput.value.trim();
 
-        // Update the URL without reloading the page (fixing extra spaces)
-        if (query) {
-            history.pushState({}, "", `?search=${encodeURIComponent(query)}`);
-        } else {
-            history.pushState({}, "", window.location.pathname);
-        }
-
-        // Get current filter values from URL and re-fetch
+        // Instead of replacing the URL, merge the search query with existing filter parameters.
         const currentParams = new URLSearchParams(window.location.search);
+        if (query) {
+            currentParams.set("search", query);
+        } else {
+            currentParams.delete("search");
+        }
+        // Preserve existing filters (category, target_amount, amount_raised) in currentParams
+        history.pushState({}, "", `?${currentParams.toString()}`);
+
+        // Retrieve the up-to-date filter values from the merged URL parameters
         const newCategory = currentParams.get("category") || "";
         const newTargetAmount = currentParams.get("target_amount") || "";
         const newAmountRaised = currentParams.get("amount_raised") || "";
+
+        // Fetch campaigns with search AND the active filters.
         fetchCampaigns(query, newCategory, newTargetAmount, newAmountRaised);
     });
 
@@ -201,20 +208,22 @@ async function updateFilters() {
     const amountRaised = document.getElementById("amount-raised").value;
     const query = document.getElementById("searchInput").value.trim();
     const params = new URLSearchParams(window.location.search);
+
+
     if (query) params.set("search", query);
-    if (category) {
-        params.set("category", category);
-    }
-    if (targetAmount) {
-        params.set("target_amount", targetAmount);
-    }
-    if (amountRaised) {
-        params.set("amount_raised", amountRaised);
-    }
+    else params.delete("search");
+
+    if (category) params.set("category", category);
+    else params.delete("category");
+
+    if (targetAmount) params.set("target_amount", targetAmount);
+    else params.delete("target_amount");
+
+    if (amountRaised) params.set("amount_raised", amountRaised);
+    else params.delete("amount_raised");
+
     window.history.pushState({}, "", `?${params.toString()}`);
-    // Reload page with new filters
-    window.location.search = params.toString();
-    await fetchCampaigns(searchQuery, category, targetAmount, amountRaised);
+    await fetchCampaigns(query, category, targetAmount, amountRaised);
 }
 
 document.getElementById("target-amount").addEventListener("change", updateFilters);

@@ -3,43 +3,87 @@ package handlers
 import (
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/paymentintent"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 func CreateDonation(c *gin.Context) {
 	campaignIDStr := c.Param("id")
 	campaignID, err := strconv.Atoi(campaignIDStr)
-	_, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "You have to be authorized. Please, log in"})
-		return
-	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
 		return
 	}
 
-	var donation models.Donation
-	if err := c.ShouldBindJSON(&donation); err != nil {
+	tokenUserID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You must be logged in to donate"})
+		return
+	}
+	userID := tokenUserID.(int)
+
+	var req struct {
+		Amount          float64 `json:"amount"`
+		StripePaymentID string  `json:"stripe_payment_id"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	donation.CampaignID = campaignID
+	if req.StripePaymentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Stripe payment ID is required"})
+		return
+	}
+
+	donation := models.Donation{
+		UserID:          userID,
+		CampaignID:      campaignID,
+		Amount:          req.Amount,
+		StripePaymentID: req.StripePaymentID,
+	}
+
 	if err := models.CreateDonation(&donation); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process donation"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":     "Donation successful",
-		"donation_id": donation.ID,
-		"amount":      donation.Amount,
-		"campaign_id": donation.CampaignID,
+		"message":        "Donation successful",
+		"donation_id":    donation.ID,
+		"amount":         donation.Amount,
+		"campaign_id":    donation.CampaignID,
+		"stripe_payment": donation.StripePaymentID,
 	})
 }
+func CreatePaymentIntent(c *gin.Context) {
+	stripe.Key = os.Getenv("STRIPE_KEY")
 
+	var req struct {
+		Amount int64 `json:"amount"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	pi, err := paymentintent.New(&stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(req.Amount),
+		Currency: stripe.String("usd"),
+	})
+	if err != nil {
+		log.Println("Stripe error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Payment failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"client_secret": pi.ClientSecret})
+}
 func GetDonationsByCampaign(c *gin.Context) {
 
 	campaignIDStr := c.Param("id")

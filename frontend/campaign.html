@@ -90,7 +90,31 @@
       border-radius: 10px;
       box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
     }
+    .social-buttons {
+      display: flex; /* Ensures they appear side by side */
+      gap: 10px; /* Adds spacing */
+    }
 
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      background-color: #1DA1F2; /* Twitter Blue */
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .btn.linkedin {
+      background-color: #0077B5; /* LinkedIn Blue */
+    }
+
+    .btn svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>

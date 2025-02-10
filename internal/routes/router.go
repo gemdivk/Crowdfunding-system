@@ -17,6 +17,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
+	router.POST("/create-payment-intent", handlers.CreatePaymentIntent)
 
 	// Load HTML templates (if you have multiple .html files)
 	router.LoadHTMLGlob("frontend/*.html")
