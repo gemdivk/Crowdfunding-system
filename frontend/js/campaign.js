@@ -11,14 +11,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    // Read URL parameters for filters
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get("category") || "";
     const query = urlParams.get("search") || "";
     const targetAmount = urlParams.get("target_amount") || "";
     const amountRaised = urlParams.get("amount_raised") || "";
 
-    // Initial fetch with the URL parameters
     fetchCampaigns(query, category, targetAmount, amountRaised);
 
     // Set the initial value and listener on the category dropdown

@@ -1,0 +1,84 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Donations</title>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <style>
+        /* Basic CSS for a clean layout */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .donation-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .donation-container h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .donation-card {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .donation-card img {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .donation-details {
+            flex: 1;
+        }
+        .donation-details h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+        }
+        .donation-details p {
+            margin: 5px 0;
+        }
+        .donation-details .donation-amount {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .donation-details .donation-date {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .error-message,
+        .no-donations {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 1.1em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="logo">
+    <a href="/static/index.html">
+        <img src="logo.png" width="60px" alt="logo">
+    </a>
+
+</div>
+
+
+<div class="donation-container">
+    <h1>My Donations</h1>
+    <div id="donations-container">
+        <!-- Donation cards will be inserted here -->
+    </div>
+</div>
+<script src="/static/js/myDonations.js"></script>
+
+</body>
+</html>

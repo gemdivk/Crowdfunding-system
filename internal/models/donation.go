@@ -15,6 +15,10 @@ type Donation struct {
 	DonationDate    time.Time `json:"donation_date"`
 	StripePaymentID string    `json:"stripe_payment_id"`
 }
+type DonationWithCampaign struct {
+	Donation Donation `json:"donation"`
+	Campaign Campaign `json:"campaign"`
+}
 
 func CreateDonation(donation *Donation) error {
 
@@ -122,4 +126,38 @@ func UpdateAmountRaised(campaignID int, donationAmount float64) error {
 	_, err = db.DB.Exec(`UPDATE "Campaign" SET amount_raised = $1 WHERE campaign_id = $2`,
 		newAmountRaised, campaignID)
 	return err
+}
+
+func GetDonationsByUserWithCampaigns(userID int) ([]DonationWithCampaign, error) {
+	query := `
+		SELECT 
+			d.donation_id, d.campaign_id, d.amount, d.donation_date,
+			c.campaign_id, c.title, c.description, c.media_path, c.target_amount, c.amount_raised
+		FROM "Donation" d
+		JOIN "Campaign" c ON d.campaign_id = c.campaign_id
+		WHERE d.user_id = $1
+	`
+	rows, err := db.DB.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch donations with campaigns: %v", err)
+	}
+	defer rows.Close()
+
+	var results []DonationWithCampaign
+	for rows.Next() {
+		var dwc DonationWithCampaign
+		err = rows.Scan(
+			&dwc.Donation.ID, &dwc.Donation.CampaignID, &dwc.Donation.Amount, &dwc.Donation.DonationDate,
+			&dwc.Campaign.CampaignID, &dwc.Campaign.Title, &dwc.Campaign.Description, &dwc.Campaign.MediaPath,
+			&dwc.Campaign.TargetAmount, &dwc.Campaign.AmountRaised,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan donation with campaign: %v", err)
+		}
+		results = append(results, dwc)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return results, nil
 }
