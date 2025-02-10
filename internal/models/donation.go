@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gemdivk/Crowdfunding-system/internal/db"
+	"log"
 	"time"
 )
 
@@ -122,4 +123,14 @@ func UpdateAmountRaised(campaignID int, donationAmount float64) error {
 	_, err = db.DB.Exec(`UPDATE "Campaign" SET amount_raised = $1 WHERE campaign_id = $2`,
 		newAmountRaised, campaignID)
 	return err
+}
+func GetUserEmail(userID int) (string, error) {
+	var email string
+	query := `SELECT email FROM "User" WHERE user_id = $1`
+	err := db.DB.QueryRow(query, userID).Scan(&email)
+	if err != nil {
+		log.Printf("Error fetching user email: %v", err)
+		return "", err
+	}
+	return email, nil
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/gemdivk/Crowdfunding-system/internal/mail"
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -26,11 +27,27 @@ func CreateCampaignHandler(c *gin.Context) {
 	// Assign user ID
 	campaign.UserID = userID.(int)
 
-	// Save campaign to DB (MediaPath is now just a URL)
+	userEmail, err := models.GetUserEmailByID(campaign.UserID)
+	if err != nil {
+		log.Printf("Failed to get user email: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user email"})
+		return
+	}
+
+	// Save campaign to DB
 	if err := models.CreateCampaign(campaign); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create campaign"})
 		return
 	}
+
+	emailSubject := "Campaign Created Successfully!"
+	emailBody := fmt.Sprintf("<h2>Congratulations!</h2><p>Your campaign <b>%s</b> has been created successfully.</p>", campaign.Title)
+
+	go func() {
+		if err := mail.SendEmail(userEmail, emailSubject, emailBody); err != nil {
+			log.Printf("Failed to send email: %v", err)
+		}
+	}()
 
 	// Return JSON response
 	c.JSON(http.StatusCreated, gin.H{
@@ -52,6 +69,7 @@ func GetCampaignsHandler(c *gin.Context) {
 	if targetAmountStr != "" {
 		targetAmount, err = strconv.ParseFloat(targetAmountStr, 64)
 		if err != nil {
+			log.Println("Error parsing target_amount:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target_amount"})
 			return
 		}
@@ -60,6 +78,7 @@ func GetCampaignsHandler(c *gin.Context) {
 	if amountRaisedStr != "" {
 		amountRaised, err = strconv.ParseFloat(amountRaisedStr, 64)
 		if err != nil {
+			log.Println("Error parsing amount_raised:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid amount_raised"})
 			return
 		}
@@ -69,6 +88,7 @@ func GetCampaignsHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve campaigns"})
 		return
 	}
+	log.Println("Campaigns received successfully:", campaigns)
 	c.JSON(http.StatusOK, campaigns)
 }
 

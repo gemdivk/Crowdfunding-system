@@ -20,6 +20,7 @@ type Campaign struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 	MediaPath    string    `json:"media_path"`
 	Category     string    `json:"category"`
+	Email        interface{}
 }
 
 var allowedCategories = map[string]bool{
@@ -206,4 +207,14 @@ func GetCampaignByuser(userid any) ([]Campaign, error) {
 		campaigns = append(campaigns, campaign)
 	}
 	return campaigns, nil
+}
+func GetUserEmailByID(userID int) (string, error) {
+	var email string
+	query := `SELECT email FROM "User" WHERE user_id = $1`
+	err := db.DB.QueryRow(query, userID).Scan(&email)
+	if err != nil {
+		log.Printf("Error fetching user email: %v", err)
+		return "", err
+	}
+	return email, nil
 }

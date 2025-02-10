@@ -78,3 +78,8 @@ func GetUserIDbyEmail(email string) (int, error) {
 	return userID, nil
 
 }
+func VerifyUserEmail(userID int) error {
+	query := `UPDATE "User" SET is_verified = TRUE WHERE user_id = $1`
+	_, err := db.DB.Exec(query, userID)
+	return err
+}

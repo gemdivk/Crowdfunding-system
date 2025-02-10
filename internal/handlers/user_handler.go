@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/gemdivk/Crowdfunding-system/internal/mail"
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -28,13 +30,21 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
+	subject := "Welcome to Qadam!"
+	body := fmt.Sprintf(
+		"Hello, %s! Your account has been created.",
+		user.Name,
+	)
+
+	if err := mail.SendEmail(user.Email, subject, body); err != nil {
+		fmt.Println("Error sending email:", err)
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
-		"message":    "User registered successfully",
-		"user_id":    user.UserID,
-		"email":      user.Email,
-		"role":       user.Role,
-		"created_at": user.CreatedAt,
-		"updated_at": user.UpdatedAt,
+		"message": "User registered successfully. Please check your email for confirmation.",
+		"user_id": user.UserID,
+		"email":   user.Email,
+		"role":    user.Role,
 	})
 }
 
@@ -85,4 +95,28 @@ func LogoutUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logout successful",
 	})
+}
+func VerifyEmail(c *gin.Context) {
+	tokenString := c.Query("token")
+	if tokenString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Verification token is required"})
+		return
+	}
+
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired verification token"})
+		return
+	}
+
+	if err := models.VerifyUserEmail(claims.UserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Email successfully verified"})
 }

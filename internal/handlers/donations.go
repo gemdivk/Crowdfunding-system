@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/gemdivk/Crowdfunding-system/internal/mail"
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v78"
@@ -51,6 +53,18 @@ func CreateDonation(c *gin.Context) {
 	if err := models.CreateDonation(&donation); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process donation"})
 		return
+	}
+
+	userEmail, err := models.GetUserEmail(userID)
+	if err != nil {
+		log.Printf("Failed to get user email: %v", err)
+	} else {
+		subject := "Thanks for donation!"
+		body := fmt.Sprintf("You have donated $%.2f to the company ID %d. Thanks for supporting!", req.Amount, campaignID)
+
+		if err := mail.SendEmail(userEmail, subject, body); err != nil {
+			log.Printf("Failed to send donation email: %v", err)
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
