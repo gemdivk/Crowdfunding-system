@@ -119,7 +119,7 @@ func GetAllCampaigns(category, search string, targetAmount, amountRaised float64
 	return campaigns, nil
 }
 
-func GetCampaignById(campaignid string) (*Campaign, error) {
+func GetCampaignById(campaignid int) (*Campaign, error) {
 	var campaign Campaign
 	err := db.DB.QueryRow(`SELECT campaign_id, user_id, title, description, target_amount, amount_raised, status, created_at, updated_at,category, media_path 
 		FROM "Campaign" WHERE campaign_id = $1`, campaignid).
@@ -137,14 +137,14 @@ func GetCampaignById(campaignid string) (*Campaign, error) {
 func UpdateCampaign(campaignID string, campaign Campaign) error {
 	query := `
 		UPDATE "Campaign" 
-		SET title = $1, description = $2, target_amount = $3, status = $4, media_path = $5, updated_at = CURRENT_TIMESTAMP
-		WHERE campaign_id = $6`
+		SET title = $1, description = $2, target_amount = $3, status = $4, media_path = $5, category = $6,updated_at = CURRENT_TIMESTAMP
+		WHERE campaign_id = $7`
 	_, err := db.DB.Exec(query,
 		campaign.Title,
 		campaign.Description,
 		campaign.TargetAmount,
 		campaign.Status,
-		campaign.MediaPath,
+		campaign.MediaPath, campaign.Category,
 		campaignID)
 	if err != nil {
 		log.Printf("Error updating campaign: %v", err)
@@ -153,7 +153,7 @@ func UpdateCampaign(campaignID string, campaign Campaign) error {
 	return nil
 }
 
-func DeleteCampaign(campaignID string) error {
+func DeleteCampaign(campaignID int) error {
 	query := `DELETE FROM "Campaign" WHERE campaign_id = $1`
 	_, err := db.DB.Exec(query, campaignID)
 	if err != nil {
@@ -217,4 +217,14 @@ func GetUserEmailByID(userID int) (string, error) {
 		return "", err
 	}
 	return email, nil
+}
+func GetMediaByID(campaignID string) (string, error) {
+	var media string
+	query := `SELECT media_path FROM "Campaign" WHERE campaign_id = $1`
+	err := db.DB.QueryRow(query, campaignID).Scan(&media)
+	if err != nil {
+		log.Printf("Error fetching a media path of the campaign: %v", err)
+		return "", err
+	}
+	return media, nil
 }

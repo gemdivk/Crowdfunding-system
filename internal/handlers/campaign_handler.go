@@ -94,7 +94,15 @@ func GetCampaignsHandler(c *gin.Context) {
 
 func GetCampaignId(c *gin.Context) {
 	campaignID := c.Param("id")
-	campaign, err := models.GetCampaignById(campaignID)
+	campaignID1, err1 := strconv.Atoi(campaignID)
+
+	if err1 != nil {
+		log.Println("Invalid campaign ID:", err1)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
+		return
+	}
+
+	campaign, err := models.GetCampaignById(campaignID1)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve campaign"})
 		return
@@ -122,6 +130,13 @@ func UpdateCampaignHandler(c *gin.Context) {
 	}
 
 	campaignID := c.Param("id") // Get the campaign ID from the URL parameter
+	if campaign.MediaPath == "" {
+		var err1 error
+		campaign.MediaPath, err1 = models.GetMediaByID(campaignID)
+		if err1 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err1})
+		}
+	}
 	err := models.UpdateCampaign(campaignID, campaign)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update campaign"})
@@ -142,8 +157,14 @@ func DeleteCampaignHandler(c *gin.Context) {
 		return
 	}
 	campaignID := c.Param("id")
+	campaignID1, err1 := strconv.Atoi(campaignID)
 
-	err := models.DeleteCampaign(campaignID)
+	if err1 != nil {
+		log.Println("Invalid campaign ID:", err1)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid campaign ID"})
+		return
+	}
+	err := models.DeleteCampaign(campaignID1)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete campaign"})
 		return

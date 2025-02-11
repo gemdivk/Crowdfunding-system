@@ -28,6 +28,11 @@ async function fetchDonations() {
 
 
 function combineDonations(donations) {
+
+    if (!donations || !Array.isArray(donations)) {
+        return [];
+    }
+
     const combined = donations.reduce((acc, item) => {
         // Ensure that the item has a donation property.
         if (!item.donation) {

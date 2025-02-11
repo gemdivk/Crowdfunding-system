@@ -34,7 +34,13 @@ async function fetchUserCampaigns() {
             <p><strong>Target:</strong> $${campaign.target_amount}</p>
             <p><strong>Raised:</strong> $${campaign.amount_raised}</p>
             <p><strong>Status:</strong> ${campaign.status}</p>
-             <button onclick="editCampaign(${campaign.campaign_id})">Edit</button>
+             <button onclick="openEditModal(
+  ${campaign.campaign_id},
+  '${escapeQuotes(campaign.title)}',
+  '${escapeQuotes(campaign.description)}',
+  ${campaign.target_amount},
+  '${campaign.status}', '${campaign.category}'
+)">Edit</button>
               <button onclick="deleteCampaign(${campaign.campaign_id})">Delete</button>
                     <div class="social-buttons">
             <!-- Twitter Share Button -->
@@ -89,15 +95,6 @@ async function fetchUserCampaigns() {
             window.open(data.linkedin, '_blank');
         });
     });
-}
-
-
-function showCreateForm() {
-    document.getElementById('create-form').style.display = 'block';
-}
-
-function hideCreateForm() {
-    document.getElementById('create-form').style.display = 'none';
 }
 
 async function createCampaign() {
@@ -180,6 +177,122 @@ async function createCampaign() {
         console.error('Error creating campaign:', error);
     }
 }
+function showCreateForm() {
+    document.getElementById('create-form').style.display = 'block';
+}
+function escapeQuotes(str) {
+    if (!str) return "";
+    return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+function hideCreateForm() {
+    document.getElementById('create-form').style.display = 'none';
+}
+document.getElementById("editCampaignForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const campaignId = document.getElementById("editCampaignId").value;
+    const newTitle = document.getElementById("editTitle").value;
+    const newDescription = document.getElementById("editDescription").value;
+    const newTargetAmount = document.getElementById("editTargetAmount").value;
+    const status = document.getElementById("editStatus").value;
+    const mediaFile = document.getElementById("editMedia").files[0];
+    const token = localStorage.getItem("token");
+    const category = document.getElementById('editCategory').value;
+    const targetAmountNum = parseFloat(newTargetAmount);
+
+    // Create a FormData object (which supports file uploads)
+   /* const formData = new FormData();
+    formData.append("title", newTitle);
+    formData.append("description", newDescription);
+    formData.append("target_amount", targetAmountNum);
+    formData.append("status", status);*/
+    let mediaPath = null;
+    if (mediaFile) {
+
+        const formData = new FormData();
+        formData.append("media", mediaFile);
+
+        try {
+            const uploadResponse = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const uploadData = await uploadResponse.json();
+            if (!uploadData.success) {
+                alert("Failed to upload file");
+                return;
+            }
+
+            mediaPath = uploadData.file_url;
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            alert("File upload failed.");
+            return;
+        }
+    }
+   else if(mediaFile == "") {
+       mediaPath = "";
+    }
+
+    const campaignData = {
+        title: newTitle,
+        description: newDescription,
+        target_amount: parseFloat(newTargetAmount),
+        status: status,
+        category: category,
+        media_path: mediaPath,
+    };
+
+
+    try {
+        const response = await fetch(`/campaigns/${campaignId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(campaignData),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert("Campaign updated successfully!");
+            // Hide the modal
+            const modalEl = document.getElementById('editCampaignModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            modalInstance.hide();
+            fetchUserCampaigns();  // Refresh the campaign list
+        } else {
+            alert(`Failed to update campaign: ${result.message || "Unknown error"}`);
+        }
+    } catch (error) {
+        console.error("Error updating campaign:", error);
+        alert("An error occurred while updating the campaign.");
+    }
+});
+
+/**
+ * Opens the edit modal with the campaign data pre-filled.
+ * @param {number} id - The campaign ID.
+ * @param {string} title - The current title.
+ * @param {string} description - The current description.
+ * @param {number} targetAmount - The current target amount.
+ * @param {string} status - The current status.
+ * @param {string} category - The current category.
+ */
+function openEditModal(id, title, description, targetAmount, status, category ) {
+    document.getElementById('editCampaignId').value = id;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editDescription').value = description;
+    document.getElementById('editTargetAmount').value = targetAmount;
+    document.getElementById('editStatus').value = status;
+  //  document.getElementById('editMedia').value = ""; // Clear any previous file selection
+   document.getElementById('editCategory').value = category
+    // Use Bootstrap's modal method to show the modal
+    const editModal = new bootstrap.Modal(document.getElementById('editCampaignModal'));
+    editModal.show();
+}
 fetchUserCampaigns();
 
 async function deleteCampaign(campaign_id) {
@@ -200,50 +313,3 @@ async function deleteCampaign(campaign_id) {
         }
     }
 
- async function editCampaign(campaign_id) {
-        const newTitle = prompt("Enter new title:");
-        const newDescription = prompt("Enter new description:");
-        const newTargetAmount = prompt("Enter new target amount:");
-        const token = localStorage.getItem("token");
-        const decoded = jwt_decode(token);
-        const mediaFile = document.getElementById('edit-media').files[0];
-        const userId = decoded.UserID;
-        const status = prompt("Enter desired new status")
-        if (!newTitle || !newDescription || !newTargetAmount || !status || !mediaFile) {
-            alert("All fields are required!");
-            return;
-        }
-        const targetAmountNum = parseFloat(newTargetAmount)
-        const campaignData = {
-            title: newTitle,
-            description: newDescription,
-            target_amount: targetAmountNum,
-            status: status,
-            media_path: mediaFile,
-        };
-
-//    console.log("Sending data:", JSON.stringify(campaignData));
-
-        fetch(`/campaigns/${campaign_id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bear ${token}`,
-            },
-            body: JSON.stringify(campaignData),
-        })
-            .then(response => response.json())
-            .then(campaignData => {
-                if (campaignData.success) {
-                    alert("Campaign updated successfully!");
-                    fetchUserCampaigns();  // Refresh the campaign list
-                } else {
-                    alert(`Failed to update campaign: ${data.message || 'Unknown error'}`);
-                }
-            })
-            .catch(error => {
-                console.error("Error updating campaign", error);
-                alert("An error occurred while updating the campaign.");
-            });
-
-}
