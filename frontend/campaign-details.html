@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Details</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container for the details */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 2em;
+        }
+
+        #campaign-media {
+            margin: 20px 0;
+        }
+
+        /* Media styling */
+        .campaign-img,
+        .campaign-video {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Campaign description */
+        #campaign-description {
+            color: #555;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        /* Info text */
+        .info {
+            font-size: 1.1em;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        /* Progress bar container */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px 0;
+            height: 20px;
+        }
+
+        /* Actual progress bar */
+        .progress-bar {
+            background: #4caf50;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Percentage text below the progress bar */
+        .amount-info {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1em;
+            color: #333;
+        }
+
+        /* Donate button */
+        #donate-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 30px;
+            transition: background-color 0.3s ease;
+        }
+
+        #donate-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <!-- Optionally, include an external stylesheet -->
+    <link rel="stylesheet" href="/static/js/styles.css">
+</head>
+<body>
+
+<nav>
+    <h1>Crowdfunding</h1>
+    <ul>
+        <li><a href="/static/index.html">Home</a></li>
+        <li><a href="/static/campaign.html">My Campaigns</a></li>
+        <li><a href="/static/login.html" id="loginLink">Login</a></li>
+        <li><a href="#" id="logoutLink" style="display:none;">Logout</a></li>
+    </ul>
+</nav>
+
+
+</div>
+
+<div id="campaign-details" class="container">
+    <h2 id="campaign-title"></h2>
+    <div id="campaign-media"></div>
+    <p id="campaign-description"></p>
+    <div class="info"><strong>Goal:</strong> $<span id="campaign-goal"></span></div>
+    <div class="info"><strong>Amount Raised:</strong> $<span id="campaign-raised"></span></div>
+
+    <!-- Progress bar section -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="amount-info">
+        <span id="progress-percent"></span> of goal reached
+    </div>
+
+    <button id="donate-btn">Donate Now</button>
+</div>
+
+<script src="/static/js/details.js"></script>
+</body>
+</html>
