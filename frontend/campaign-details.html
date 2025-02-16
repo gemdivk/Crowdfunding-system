@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/static/css/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campaign Details</title>
     <style>
-        /* Global styles */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background: #f7f7f7;
@@ -14,28 +12,31 @@
             padding: 0;
         }
 
-        /* Container for the details */
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 50px auto;
             background: #fff;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
 
-        h2 {
-            margin-top: 0;
-            color: #333;
-            font-size: 2em;
+        /* Layout */
+        .campaign-header {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
         }
 
         #campaign-media {
-            margin: 20px 0;
+            flex: 1;
         }
 
-        /* Media styling */
+        .campaign-info {
+            flex: 1;
+            text-align: left;
+        }
+
         .campaign-img,
         .campaign-video {
             max-width: 100%;
@@ -43,65 +44,143 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        /* Campaign description */
-        #campaign-description {
-            color: #555;
-            line-height: 1.6;
-            margin: 20px 0;
+        h2 {
+            margin: 0 0 15px;
+            color: #333;
+            font-size: 1.8em;
         }
 
-        /* Info text */
         .info {
             font-size: 1.1em;
             margin: 10px 0;
             color: #333;
         }
 
-        /* Progress bar container */
+        /* Progress bar */
         .progress-container {
+            width: 100%;
             background: #e0e0e0;
             border-radius: 20px;
             overflow: hidden;
-            margin: 20px 0;
             height: 20px;
+            position: relative;
         }
 
-        /* Actual progress bar */
         .progress-bar {
             background: #4caf50;
             height: 100%;
             width: 0%;
-            transition: width 0.5s ease;
+            transition: width 0.5s ease-in-out;
+            border-radius: 0; /* No rounding in CSS */
         }
 
-        /* Percentage text below the progress bar */
+
         .amount-info {
-            text-align: center;
-            margin: 10px 0;
             font-size: 1em;
             color: #333;
         }
 
         /* Donate button */
         #donate-btn {
-            background-color: #007bff;
+            background-color: #0f4b31;
             color: white;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 30px;
-            transition: background-color 0.3s ease;
+            margin-top: 15px;
+            width: 100%;
+            text-align: center;
+            display: block;
         }
 
         #donate-btn:hover {
-            background-color: #0056b3;
+            background-color: #073f07;
         }
-    </style>
 
-    <!-- Optionally, include an external stylesheet -->
-    <link rel="stylesheet" href="/static/js/styles.css">
+        /* More details */
+        .campaign-details {
+            margin-top: 40px;
+        }
+
+        #toggle-donations-btn {
+            background-color: #0f4b31;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        #donations-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .donation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .donation-item {
+            background: #f1f1f1;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav {
+            background-color: #0f4b31; /* Dark green background */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 60px;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav h1 {
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 1em;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        nav ul li a:hover,
+        nav ul li a:focus {
+            background-color: #073f07; /* Slightly darker green on hover */
+            color: #ffcc00; /* A contrasting color for hover effect */
+        }
+
+
+    </style>
 </head>
 <body>
 
@@ -115,27 +194,47 @@
     </ul>
 </nav>
 
+<div class="container">
+    <div class="campaign-header">
+        <!-- Media Section -->
+        <div id="campaign-media">
+            <img id="campaign-image" class="campaign-img" src="#" alt="Campaign Image">
+        </div>
 
-</div>
+        <!-- Campaign Info -->
+        <div class="campaign-info">
+            <h2 id="campaign-title">Campaign Title</h2>
+            <p id="campaign-description">Campaign description goes here...</p>
+            <div class="info"><strong>Goal:</strong> $<span id="campaign-goal">0</span></div>
+            <div class="info"><strong>Amount Raised:</strong> $<span id="campaign-raised">0</span></div>
 
-<div id="campaign-details" class="container">
-    <h2 id="campaign-title"></h2>
-    <div id="campaign-media"></div>
-    <p id="campaign-description"></p>
-    <div class="info"><strong>Goal:</strong> $<span id="campaign-goal"></span></div>
-    <div class="info"><strong>Amount Raised:</strong> $<span id="campaign-raised"></span></div>
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="amount-info">
+                <span id="progress-percent">0%</span> of goal reached
+            </div>
 
-    <!-- Progress bar section -->
-    <div class="progress-container">
-        <div class="progress-bar" id="progress-bar"></div>
+            <!-- Donate Button -->
+            <button id="donate-btn">Donate Now</button>
+        </div>
     </div>
-    <div class="amount-info">
-        <span id="progress-percent"></span> of goal reached
+
+    <!-- More Details -->
+    <div class="campaign-details">
+
     </div>
 
-    <button id="donate-btn">Donate Now</button>
+    <!-- Donations List -->
+    <button id="toggle-donations-btn">View Donations</button>
+    <div id="donations-container">
+        <h3>Recent Donations</h3>
+        <ul class="donation-list" id="donation-list"></ul>
+    </div>
 </div>
 
 <script src="/static/js/details.js"></script>
+
 </body>
 </html>

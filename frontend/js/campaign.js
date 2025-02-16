@@ -95,18 +95,33 @@ async function fetchCampaigns(query = "", category = "", targetAmount = "", amou
         if (campaigns.length === 0) {
             campaignList.innerHTML = "<p>No campaigns found.</p>";
         } else {
+
+
             campaigns.forEach(campaign => {
+                const progress = (campaign.amount_raised / campaign.target_amount) * 100;
+                const formattedGoal = new Intl.NumberFormat().format(campaign.target_amount);
+                const formattedRaised = new Intl.NumberFormat().format(campaign.amount_raised);
                 const campaignDiv = document.createElement("div");
                 campaignDiv.classList.add("campaign", "campaign-card");
 
                 campaignDiv.innerHTML = `
-                    <div class="campaign-media">   <img src="${campaign.media_path}" alt="Campaign Image"> </div>
-                    <h3>${campaign.title}</h3>  
-                    <p>${campaign.campaign_id}</p>
-                    <p>${campaign.description}</p>
-                    <p><strong>Goal:</strong> $${campaign.target_amount}</p>
-                    <p>Amount raised: ${campaign.amount_raised}</p>
-                    <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn">Donate</a>
+                  <div class="campaign-media">
+                            <img src="${campaign.media_path}" alt="Campaign Image">
+                  </div>
+                 <div class="campaign-content">
+                          <h3>${campaign.title}</h3>
+                           <p class="category">${campaign.category}</p>
+                  
+                           <p class="organizer"><strong>By:</strong> ${campaign.user_id}</p>
+                   <p><strong>Goal:</strong> $${formattedGoal}</p>
+                  <p>Amount raised: $${formattedRaised}</p>
+        <div class="progress-bar">
+            <div class="progress" style="width: ${progress}%;"></div>
+        </div>
+        <div class="actions">
+             <a href="/static/donation.html?id=${campaign.campaign_id}" class="btn donate-btn">Donate</a>
+        </div>
+    </div>
                 `;
 
                 campaignDiv.addEventListener("click", (e) => {

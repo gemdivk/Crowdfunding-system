@@ -206,28 +206,148 @@ header {
 .search-input::placeholder {
     color: gray;
 }
-.campaign-card {
-    background: white;  /* Ensuring a white background */
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.campaign-media img,
-.campaign-media video {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
+
+
+.category {
+    font-size: 14px;
+    color: #666;
 }
 
-.campaign-info {
+.description {
+    font-size: 14px;
+    color: #333;
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.organizer {
+    font-size: 14px;
+    color: #555;
+}
+
+
+
+
+.actions {
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.btn {
+    padding: 8px 12px;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
     text-align: center;
 }
+
+.donate-btn {
+    background: #28a745;
+}
+
+.share-btn {
+    background: #007bff;
+    border: none;
+    cursor: pointer;
+}
+
 .social-buttons {
     display: flex; /* or block */
     gap: 10px;
+}
+/* SECTION STYLING */
+.campaigns-container {
+    display: grid;
+    grid-gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Individual Campaign Card */
+.campaign-card {
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.campaign-card:hover {
+    transform: translateY(-2px); /* Subtle hover lift */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Media (Image/Video) */
+.campaign-media {
+    width: 100%;
+    height: 160px;             /* Adjust for uniform height */
+    overflow: hidden;
+    background: #eee;          /* Fallback background if image fails */
+}
+.campaign-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;         /* Crops images uniformly */
+}
+
+/* Main Card Content */
+.campaign-content {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px;        /* Comfortable padding around text */
+    gap: 0.6rem;               /* Spacing between text elements */
+    flex: 1;                   /* Let content grow to fill leftover space */
+}
+
+/* Campaign Title */
+.campaign-content h3 {
+    font-size: 1.4rem;         /* Larger than default */
+    margin: 0;
+    color: #333;
+    font-weight: 700;
+}
+
+/* Category, Organizer, etc. */
+.campaign-content p {
+    margin: 0;                 /* We'll rely on gap above */
+    line-height: 1.4;
+    font-size: 1.1rem;         /* Slightly bigger text */
+    color: #555;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: #eaeaea;
+    border-radius: 5px;
+    height: 10px;
+    margin: 6px 0;
+    overflow: hidden;
+}
+.progress-bar .progress {
+    background: #28a745;
+    height: 100%;
+}
+
+/* Actions: Donate Button at the bottom */
+.actions {
+    margin-top: auto;          /* Push the button to the bottom if there's extra text */
+    text-align: center;
+}
+.donate-btn {
+    display: inline-block;
+    background: #0f4b31;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.3s, transform 0.2s;
+}
+.donate-btn:hover {
+    background: #073f07;
+    transform: translateY(-2px);
 }

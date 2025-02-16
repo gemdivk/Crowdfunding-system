@@ -20,6 +20,10 @@ type DonationWithCampaign struct {
 	Donation Donation `json:"donation"`
 	Campaign Campaign `json:"campaign"`
 }
+type DonationWithUser struct {
+	Donation Donation `json:"donation"`
+	User     User     `json:"user"`
+}
 
 func CreateDonation(donation *Donation) error {
 
@@ -39,10 +43,10 @@ func CreateDonation(donation *Donation) error {
 	return nil
 }
 
-func GetDonationsForCampaign(campaignID int) ([]Donation, error) {
-	var donations []Donation
-	query := `SELECT donation_id, user_id, campaign_id, amount, donation_date 
-              FROM "Donation" WHERE campaign_id = $1`
+func GetDonationsForCampaign(campaignID int) ([]DonationWithUser, error) {
+	var donations []DonationWithUser
+	query := `SELECT d.donation_id, d.user_id, d.campaign_id, d.amount, d.donation_date, u.name, u.email 
+              FROM "Donation" d join "User" u on d.user_id = u.user_id  WHERE d.campaign_id = $1 `
 	rows, err := db.DB.Query(query, campaignID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to fetch donations for campaign: %v", err)
@@ -50,11 +54,11 @@ func GetDonationsForCampaign(campaignID int) ([]Donation, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var donation Donation
-		if err := rows.Scan(&donation.ID, &donation.UserID, &donation.CampaignID, &donation.Amount, &donation.DonationDate); err != nil {
+		var dw DonationWithUser
+		if err := rows.Scan(&dw.Donation.ID, &dw.Donation.UserID, &dw.Donation.CampaignID, &dw.Donation.Amount, &dw.Donation.DonationDate, &dw.User.Name, &dw.User.Email); err != nil {
 			return nil, fmt.Errorf("Failed to scan donation: %v", err)
 		}
-		donations = append(donations, donation)
+		donations = append(donations, dw)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

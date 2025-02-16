@@ -23,6 +23,11 @@ type Campaign struct {
 	Email        interface{}
 }
 
+type CampaignWithCreator struct {
+	Campaign Campaign `json:"campaign"`
+	Creator  User     `json:"creator"`
+}
+
 var allowedCategories = map[string]bool{
 	"Social Impact":                true,
 	"Education & Research":         true,
@@ -121,11 +126,42 @@ func GetAllCampaigns(category, search string, targetAmount, amountRaised float64
 	return campaigns, nil
 }
 
-func GetCampaignById(campaignid int) (*Campaign, error) {
-	var campaign Campaign
-	err := db.DB.QueryRow(`SELECT campaign_id, user_id, title, description, target_amount, amount_raised, status, created_at, updated_at,category, media_path 
-		FROM "Campaign" WHERE campaign_id = $1`, campaignid).
-		Scan(&campaign.CampaignID, &campaign.UserID, &campaign.Title, &campaign.Description, &campaign.TargetAmount, &campaign.AmountRaised, &campaign.Status, &campaign.CreatedAt, &campaign.UpdatedAt, &campaign.Category, &campaign.MediaPath)
+func GetCampaignById(campaignid int) (*CampaignWithCreator, error) {
+	var result CampaignWithCreator
+	query := `
+		SELECT 
+			c.campaign_id, 
+			c.user_id, 
+			c.title, 
+			c.description, 
+			c.target_amount, 
+			c.amount_raised, 
+			c.status, 
+			c.created_at, 
+			c.updated_at,
+			c.category, 
+			c.media_path, 
+			u.name, 
+			u.email
+		FROM "Campaign" c
+		JOIN "User" u ON c.user_id = u.user_id
+		WHERE c.campaign_id = $1
+	`
+	err := db.DB.QueryRow(query, campaignid).Scan(
+		&result.Campaign.CampaignID,
+		&result.Campaign.UserID,
+		&result.Campaign.Title,
+		&result.Campaign.Description,
+		&result.Campaign.TargetAmount,
+		&result.Campaign.AmountRaised,
+		&result.Campaign.Status,
+		&result.Campaign.CreatedAt,
+		&result.Campaign.UpdatedAt,
+		&result.Campaign.Category,
+		&result.Campaign.MediaPath,
+		&result.Creator.Name,
+		&result.Creator.Email,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -133,7 +169,7 @@ func GetCampaignById(campaignid int) (*Campaign, error) {
 		log.Printf("Error retrieving campaign by ID: %v", err)
 		return nil, fmt.Errorf("failed to retrieve campaign: %v", err)
 	}
-	return &campaign, nil
+	return &result, nil
 }
 
 func UpdateCampaign(campaignID string, campaign Campaign) error {
