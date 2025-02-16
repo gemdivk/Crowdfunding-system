@@ -34,6 +34,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/campaigns/", handlers.GetCampaignsHandler)
 	router.GET("/campaigns/:id", handlers.GetCampaignId)
 	router.POST("/register", handlers.RegisterUser)
+	router.GET("/verify-email", handlers.VerifyEmail)
 	router.POST("/login", handlers.LoginUser)
 	router.POST("/logout", handlers.LogoutUser)
 

@@ -17,6 +17,7 @@ type User struct {
 	Password     string    `json:"password"`
 	PasswordHash string    `json:"-"`
 	Role         string    `json:"role"`
+	IsVerified   bool      `json:"is_verified"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -32,9 +33,9 @@ func Register(user *User) error {
 	}
 
 	query := `
-		INSERT INTO "User" (name, email, password_hash, role, created_at, updated_at) 
-		VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING user_id, created_at, updated_at
-	`
+    INSERT INTO "User" (name, email, password_hash, role, is_verified, created_at, updated_at) 
+    VALUES ($1, $2, $3, $4, FALSE, NOW(), NOW()) RETURNING user_id, created_at, updated_at
+`
 	err = db.DB.QueryRow(query, user.Name, user.Email, string(hashedPassword), user.Role).Scan(&user.UserID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return err
@@ -48,13 +49,17 @@ func Authenticate(email, password string) (*User, error) {
 	var hashedPassword string
 
 	// Query the database for the user by email
-	err := db.DB.QueryRow(`SELECT user_id, name, email, password_hash, role, created_at, updated_at 
-		FROM "User" WHERE email = $1`, email).Scan(&user.UserID, &user.Name, &user.Email, &hashedPassword, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	err := db.DB.QueryRow(`SELECT user_id, name, email, password_hash, role, is_verified, created_at, updated_at 
+        FROM "User" WHERE email = $1`, email).Scan(&user.UserID, &user.Name, &user.Email, &hashedPassword, &user.Role, &user.IsVerified, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, errors.New("invalid email or password")
 		}
 		return nil, err
+	}
+
+	if !user.IsVerified {
+		return nil, errors.New("email not verified")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)); err != nil {

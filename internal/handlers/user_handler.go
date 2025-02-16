@@ -30,10 +30,21 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	subject := "Welcome to Qadam!"
+	token, err := generateVerificationToken(user.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate verification token"})
+		return
+	}
+
+	verificationLink := fmt.Sprintf("http://localhost:8080/verify-email?token=%s", token)
+
+	subject := "Welcome to Qadam! Please verify your email"
 	body := fmt.Sprintf(
-		"Hello, %s! Your account has been created.",
+		"Hello, %s! Your account has been created. Please click the link below to verify your email address:<br><br>"+
+			"<a href='%s'>%s</a>",
 		user.Name,
+		verificationLink,
+		verificationLink,
 	)
 
 	if err := mail.SendEmail(user.Email, subject, body); err != nil {
@@ -41,13 +52,12 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "User registered successfully. Please check your email for confirmation.",
+		"message": "User registered successfully. Please check your email for verification.",
 		"user_id": user.UserID,
 		"email":   user.Email,
 		"role":    user.Role,
 	})
 }
-
 func LoginUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -60,6 +70,7 @@ func LoginUser(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+
 	expirationTime := time.Now().Add(24 * time.Hour)
 	userid, _ := models.GetUserIDbyEmail(user.Email)
 	claims := &Claims{
@@ -86,7 +97,6 @@ func LoginUser(c *gin.Context) {
 		"created_at": authUser.CreatedAt,
 		"updated_at": authUser.UpdatedAt,
 	})
-
 }
 func LogoutUser(c *gin.Context) {
 	// Invalidate the token by setting an empty token with an immediate expiration
@@ -118,5 +128,17 @@ func VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Email successfully verified"})
+	c.Redirect(http.StatusFound, "/static/verification_success.html")
+}
+func generateVerificationToken(userID int) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtKey)
 }
