@@ -48,6 +48,18 @@ cd Crowdfunding-system
 go mod tidy
 ```
 4. Set up environment variables in a .env file (PostgreSQL connection, authentication keys, etc.).
+```
+DB_USER=
+DB_PASSWORD=
+DB_HOST=
+DB_PORT=
+DB_NAME=
+STRIPE_KEY=sk_test_51QqqjJFKXCRtVeXQTzgvg1IPzPFcmgNfUGMj7c4V6M2zWWPZytyRQLhABle07pJApeEAQPsccZzvBLkAo904s59L007CILTCXm
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=yermukhanovdaulet@gmail.com
+SMTP_PASSWORD=fuie qmxr xzjk ywob
+```
 5. Run the application:
 ```
 go run main.go
