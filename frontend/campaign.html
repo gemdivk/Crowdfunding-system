@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Campaigns - Crowdfunding</title>
   <link rel="icon" href="logo.png" type="image/x-icon" />
+  <link rel="stylesheet" href="/static/css/styles.css">
+
 
   <!-- Google Fonts -->
   <link
@@ -56,50 +58,13 @@
       margin-bottom: 1rem;
     }
 
-    /* Custom Navbar (as provided) */
-    nav {
-      background-color: #0f4b31; /* Dark green background */
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 60px;
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    nav h1 {
-      font-size: 1.5em;
-      /* Use Montserrat for a modern look */
-      font-family: "Montserrat", sans-serif;
-    }
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-    }
-    nav ul li {
-      margin-left: 20px;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #fff;
-      font-size: 1em;
-      padding: 8px 12px;
-      border-radius: 4px;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    nav ul li a:hover,
-    nav ul li a:focus {
-      background-color: #073f07; /* Slightly darker green on hover */
-      color: #ffcc00; /* Contrasting color for hover */
-    }
+
 
     /* Main Container */
     .main-container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 15px;
+      max-width: 550px;
+      margin: 50px auto;
+      padding: 30px;
     }
 
     /* Create Campaign Form */
@@ -272,16 +237,46 @@
   </style>
 </head>
 <body>
-<!-- Custom Navbar -->
+  <header>
+    <div class="logo">
+        <a href="/static/index.html">
+            <img src="logo.png" width="60px" alt="logo">
+        </a>
+
+    </div>
+    <div class="search-box">
+        <form id="searchForm">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for campaigns...">
+            <button type="submit" style="display:none;">Search</button>
+        </form>
+    </div>
+    <div class="buttons">
+        <a href="/static/campaign.html" class="btn" id = "campaign-menu">My Campaigns</a>
+        <a href="/static/myDonations.html" class="btn" >My Donations</a>
+        <a href="/static/admin.html" class="btn" id="Admin">Admin</a>
+        <a href="/static/login.html" class="btn login-btn">Login</a>
+        <a href="#" class="btn logout-btn" style="display:none;">Logout</a>
+        
+    </div>
+
+</header>
+
 <nav>
-  <h1>Crowdfunding</h1>
-  <ul>
-    <li><a href="/static/index.html">Home</a></li>
-    <li><a href="/static/campaign.html">My Campaigns</a></li>
-    <li><a href="/static/login.html" id="loginLink">Login</a></li>
-    <li><a href="#" id="logoutLink" style="display: none;">Logout</a></li>
-  </ul>
+    <ul>
+        <ul>
+            <ul>
+                <li><a href="?category=Social%20Impact">Social Impact</a></li>
+                <li><a href="?category=Education%20%26%20Research">Education & Research</a></li>
+                <li><a href="?category=Creative%20Arts">Creative Arts</a></li>
+                <li><a href="?category=Technology%20%26%20Innovation">Technology & Innovation</a></li>
+                <li><a href="?category=Environment%20%26%20Sustainability">Environment & Sustainability</a></li>
+                <li><a href="?category=General%20%26%20Miscellaneous">General & Miscellaneous</a></li>
+            </ul>
+        </ul>
+
+    </ul>
 </nav>
+
 
 <div class="main-container">
   <div class="d-flex justify-content-end my-3">

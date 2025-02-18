@@ -1,117 +1,87 @@
 package models
 
 import (
-	"fmt"
-	"time"
+	"log"
 
 	"github.com/gemdivk/Crowdfunding-system/internal/db"
 )
 
-type UserPoints struct {
-	UserID    string    `json:"user_id"`
-	Points    int       `json:"points"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+type LeaderboardUser struct {
+	Name         string `json:"name"`
+	Achievements string `json:"achievements"`
+	Points       int    `json:"points"`
 }
 
-type Achievement struct {
-	ID              int       `json:"id"`
-	UserID          string    `json:"user_id"`
-	AchievementName string    `json:"achievement_name"`
-	AchievedAt      time.Time `json:"achieved_at"`
-}
-
-func GetAllUserPoints() ([]UserPoints, error) {
-	var points []UserPoints
-	query := `SELECT user_id, points, created_at, updated_at FROM "UserPoints"`
+func GetLeaderboard() ([]LeaderboardUser, error) {
+	var users []LeaderboardUser
+	query := `
+		SELECT u.name, 
+		       COALESCE(string_agg(DISTINCT ua.achievement, ', '), 'No achievements yet') AS achievements, 
+		       u.points 
+		FROM "User" u
+		LEFT JOIN "UserAchievements" ua ON u.user_id = ua.user_id
+		GROUP BY u.user_id, u.name, u.points
+		ORDER BY u.points DESC`
 	rows, err := db.DB.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to fetch user points: %v", err)
+		log.Printf("Error fetching leaderboard: %v", err)
+		return nil, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var userPoint UserPoints
-		if err := rows.Scan(&userPoint.UserID, &userPoint.Points, &userPoint.CreatedAt, &userPoint.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("Failed to scan user points: %v", err)
+		var user LeaderboardUser
+		if err := rows.Scan(&user.Name, &user.Achievements, &user.Points); err != nil {
+			return nil, err
 		}
-		points = append(points, userPoint)
+		users = append(users, user)
 	}
-	return points, nil
+	return users, nil
 }
 
-func AddUserPoints(userPoints UserPoints) error {
+func AddUserAchievement(userID int, achievementName string, points int) error {
+	log.Printf("🏆 Добавляем достижение в БД: User %d | %s (%d points)", userID, achievementName, points)
+
 	query := `
-		INSERT INTO "UserPoints" (user_id, points, created_at, updated_at)
-		VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	`
-	_, err := db.DB.Exec(query, userPoints.UserID, userPoints.Points)
+        INSERT INTO "UserAchievements" (user_id, achievement, points)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id, achievement) DO NOTHING
+        RETURNING achievement`
+
+	var addedAchievement string
+	err := db.DB.QueryRow(query, userID, achievementName, points).Scan(&addedAchievement)
 	if err != nil {
-		return fmt.Errorf("Failed to add user points: %v", err)
+		log.Printf("Error adding achievement: %v", err)
+		return err
 	}
-	return nil
+
+	log.Printf("Achievement added successfully: %s", addedAchievement)
+	return UpdateUserPoints(userID, points)
 }
 
-func UpdateUserPoints(userID string, points int) error {
+func IncrementUserAction(userID int, action string) (int, error) {
+	var count int
 	query := `
-		UPDATE "UserPoints"
-		SET points = $1, updated_at = CURRENT_TIMESTAMP
-		WHERE user_id = $2
-	`
-	_, err := db.DB.Exec(query, points, userID)
+		INSERT INTO "UserActions" (user_id, action, count)
+		VALUES ($1, $2, 1)
+		ON CONFLICT (user_id, action) DO UPDATE
+		SET count = "UserActions".count + 1 RETURNING count`
+	err := db.DB.QueryRow(query, userID, action).Scan(&count)
 	if err != nil {
-		return fmt.Errorf("Failed to update user points: %v", err)
+		log.Printf("Error incrementing user action: %v", err)
+		return 0, err
 	}
-	return nil
+	return count, nil
 }
 
-func DeleteUserPoints(userID string) error {
-	query := `DELETE FROM "UserPoints" WHERE user_id = $1`
-	_, err := db.DB.Exec(query, userID)
+func UpdateUserPoints(userID int, points int) error {
+	query := `UPDATE "User" SET points = points + $1 WHERE user_id = $2 RETURNING points`
+	var newPoints int
+	err := db.DB.QueryRow(query, points, userID).Scan(&newPoints)
 	if err != nil {
-		return fmt.Errorf("Failed to delete user points: %v", err)
+		log.Printf("Error updating user points: %v", err)
+		return err
 	}
-	return nil
-}
-
-// --- Achievements CRUD ---
-
-func GetAllAchievements() ([]Achievement, error) {
-	var achievements []Achievement
-	query := `SELECT id, user_id, achievement_name, achieved_at FROM "Achievements"`
-	rows, err := db.DB.Query(query)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to fetch achievements: %v", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var achievement Achievement
-		if err := rows.Scan(&achievement.ID, &achievement.UserID, &achievement.AchievementName, &achievement.AchievedAt); err != nil {
-			return nil, fmt.Errorf("Failed to scan achievement: %v", err)
-		}
-		achievements = append(achievements, achievement)
-	}
-	return achievements, nil
-}
-
-func AddAchievement(achievement Achievement) error {
-	query := `
-		INSERT INTO "Achievements" (user_id, achievement_name, achieved_at)
-		VALUES ($1, $2, CURRENT_TIMESTAMP)
-	`
-	_, err := db.DB.Exec(query, achievement.UserID, achievement.AchievementName)
-	if err != nil {
-		return fmt.Errorf("Failed to add achievement: %v", err)
-	}
-	return nil
-}
-
-func DeleteAchievement(id int) error {
-	query := `DELETE FROM "Achievements" WHERE id = $1`
-	_, err := db.DB.Exec(query, id)
-	if err != nil {
-		return fmt.Errorf("Failed to delete achievement: %v", err)
-	}
+	log.Printf("User %d now has %d points", userID, newPoints)
 	return nil
 }

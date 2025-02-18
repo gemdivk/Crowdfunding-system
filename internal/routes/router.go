@@ -1,11 +1,12 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gemdivk/Crowdfunding-system/internal/handlers"
 	"github.com/gemdivk/Crowdfunding-system/internal/middleware"
 	"github.com/gemdivk/Crowdfunding-system/internal/social"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func SetupRouter() *gin.Engine {
@@ -77,13 +78,34 @@ func SetupRouter() *gin.Engine {
 			"linkedin": linkedinLink,
 		})
 	})
-	router.GET("/user-points", handlers.GetAllUserPoints)
-	router.POST("/user-points", handlers.AddUserPoints)
-	router.PUT("/user-points/:user_id", handlers.UpdateUserPoints)
-	router.DELETE("/user-points/:user_id", handlers.DeleteUserPoints)
 
-	router.GET("/achievements", handlers.GetAllAchievements)
-	router.POST("/achievements", handlers.AddAchievement)
-	router.DELETE("/achievements/:id", handlers.DeleteAchievement)
+	router.GET("/gamification/leaderboard", handlers.GetLeaderboard)
+	router.POST("/gamification/update", middleware.AuthMiddleware(), handlers.UpdateUserPoints)
+
+	router.GET("/admin", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "admin.html", nil)
+	})
+
+	adminRoutes := router.Group("/admin")
+	adminRoutes.Use(middleware.AuthMiddleware())
+
+	setupAdminRoutes(router)
+
 	return router
+}
+
+func setupAdminRoutes(router *gin.Engine) {
+	adminRoutes := router.Group("/admin")
+	adminRoutes.Use(middleware.AuthMiddleware())
+	{
+		adminRoutes.GET("/users", handlers.GetUsersHandler)
+		adminRoutes.DELETE("/users/:id", handlers.DeleteUserHandler)
+		adminRoutes.GET("/campaigns", handlers.GetCampaignsHandler)
+		adminRoutes.DELETE("/campaigns/:id", handlers.DeleteCampaignHandler)
+		adminRoutes.PUT("/campaigns/:id/status", handlers.UpdateCampaignStatusHandler)
+		adminRoutes.GET("/dashboard", handlers.GetAdminDashboardHandler)
+		adminRoutes.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "admin.html", nil)
+		})
+	}
 }

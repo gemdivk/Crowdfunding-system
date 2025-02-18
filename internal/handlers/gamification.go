@@ -1,100 +1,75 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gemdivk/Crowdfunding-system/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
-// --- User Points Handlers ---
-
-func GetAllUserPoints(c *gin.Context) {
-	points, err := models.GetAllUserPoints()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user points"})
-		return
-	}
-	c.JSON(http.StatusOK, points)
+var AchievementThresholds = map[string]struct {
+	Threshold int
+	Name      string
+	Points    int
+}{
+	"searcher":       {5, "Searcher", 20},
+	"active_donator": {5, "Active Donator", 50},
+	"daily_login":    {1, "Daily Login", 10},
+	"coin_click":     {1, "Coin Click", 1},
 }
 
-func AddUserPoints(c *gin.Context) {
-	var newPoints models.UserPoints
-	if err := c.ShouldBindJSON(&newPoints); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+func GetLeaderboard(c *gin.Context) {
+	users, err := models.GetLeaderboard()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve leaderboard"})
 		return
 	}
-
-	if err := models.AddUserPoints(newPoints); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add user points"})
-		return
-	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User points added successfully"})
+	c.JSON(http.StatusOK, users)
 }
 
 func UpdateUserPoints(c *gin.Context) {
-	userID := c.Param("user_id")
-	var data struct {
-		Points int `json:"points"`
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
 	}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+	userIDInt, ok := userID.(int)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	if err := models.UpdateUserPoints(userID, data.Points); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user points"})
+	achievementKey := c.Query("achievement")
+	threshold, exists := AchievementThresholds[achievementKey]
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid achievement"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "User points updated successfully"})
-}
 
-func DeleteUserPoints(c *gin.Context) {
-	userID := c.Param("user_id")
-	if err := models.DeleteUserPoints(userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user points"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "User points deleted successfully"})
-}
-
-// --- Achievements Handlers ---
-
-func GetAllAchievements(c *gin.Context) {
-	achievements, err := models.GetAllAchievements()
+	count, err := models.IncrementUserAction(userIDInt, achievementKey)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch achievements"})
-		return
-	}
-	c.JSON(http.StatusOK, achievements)
-}
-
-func AddAchievement(c *gin.Context) {
-	var newAchievement models.Achievement
-	if err := c.ShouldBindJSON(&newAchievement); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track action"})
 		return
 	}
 
-	if err := models.AddAchievement(newAchievement); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add achievement"})
+	log.Printf("✅ Достижение должно добавиться: User %d | Действие: %s | Количество: %d | Порог: %d", userIDInt, achievementKey, count, threshold.Threshold)
+
+	if count == threshold.Threshold {
+		err := models.AddUserAchievement(userIDInt, threshold.Name, threshold.Points)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add achievement"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Achievement unlocked!", "achievement": threshold.Name})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Achievement added successfully"})
-}
 
-func DeleteAchievement(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	err = models.UpdateUserPoints(userIDInt, threshold.Points)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid achievement ID"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update points"})
 		return
 	}
 
-	if err := models.DeleteAchievement(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete achievement"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Achievement deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Points updated"})
 }
