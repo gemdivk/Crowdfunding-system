@@ -18,6 +18,31 @@ async function fetchUsers() {
     }
 }
 
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        let response = await fetch("/api/get-user-role");  // Example endpoint
+        let user = await response.json();
+
+        if (user.role !== "admin") {
+            alert("Access Denied: Admins Only");
+            window.location.href = "/login";
+        }
+
+        // Load user data if admin
+        let usersResponse = await fetch("/admin/users");
+        let users = await usersResponse.json();
+        let userList = document.getElementById("user-list");
+        users.forEach(user => {
+            let userDiv = document.createElement("div");
+            userDiv.innerText = `User: ${user.name}, Role: ${user.role}`;
+            userList.appendChild(userDiv);
+        });
+    } catch (error) {
+        console.error("Error:", error);
+    }
+});
+
+
 async function deleteUser(userId) {
     try {
         await fetch(`/admin/users/${userId}`, {
