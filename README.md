@@ -31,18 +31,27 @@ Qadam is a crowdfunding platform designed to provide an accessible, secure, and 
 
 ## Installation & Setup
 ### Prerequisites
-- Node.js and npm installed
-- MongoDB Atlas account for database storage
+- Go installed
+- PostgreSQL database setup
 
-### Steps to Run the Project
+## Steps to Run the Project
 1. Clone the repository:
-   ```
-   git clone https://github.com/gemdivk/Crowdfunding-system.git
-   ```
+```
+git clone https://github.com/gemdivk/Crowdfunding-system.git
+```
 2. Navigate to the project directory:
-   ```
-   cd Crowdfunding-system
-   ```
+```
+cd Crowdfunding-system
+```
+3. Install dependencies:
+```
+go mod tidy
+```
+4. Set up environment variables in a .env file (PostgreSQL connection, authentication keys, etc.).
+5. Run the application:
+```
+go run main.go
+```
 
 ## Contribution
 1. Fork the repository.
